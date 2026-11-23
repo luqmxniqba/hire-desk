@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node scripts/build-config.mjs",
+  "outputDirectory": "site",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {"source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])/details", "destination": "/details/index.html"},
+    {"source": "/:slug((?!staff$|book$|details$|vendor$|fonts$|shared$|icons$)[a-z0-9][a-z0-9-]{1,38}[a-z0-9])", "destination": "/book/index.html"}
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {"key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"},
+        {"key": "X-Content-Type-Options", "value": "nosniff"},
+        {"key": "Referrer-Policy", "value": "strict-origin-when-cross-origin"},
+        {"key": "X-Frame-Options", "value": "DENY"},
+        {"key": "Permissions-Policy", "value": "geolocation=(), microphone=(), payment=()"}
+      ]
+    },
+    {"source": "/(fonts|icons|vendor)/(.*)", "headers": [{"key": "Cache-Control", "value": "public, max-age=604800"}]}
+  ]
+}

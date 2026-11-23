@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Book a car</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#15171a">
+<script src="/config.js"></script>
+<script src="/shared/public.js"></script>
+<style>
+/* VOICE friendly and exact: a local car hire desk answering a customer on their phone
+   IDEA the yellow number plate and the key tag: each car is a tag you can take off the hook
+   PICTURE the dates card on a tarmac band, then the cars, each drawn in its own paint, with the price for your dates
+   COLOUR tarmac night band and footer; plate yellow for prices and the main action; white cards; red only for booked
+   TYPE Barlow Condensed for names, dates and prices + Barlow for text
+   LAYOUT phone: header, dates, filters, cars in one column, then how it works; laptop: title and dates side by side, cars in a grid */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#101113);--ink:light-dark(#141518,#f0f0ee);--mute:light-dark(#585c63,#a8acb3);--line:light-dark(#e0e1e3,#2d2f34);--line2:light-dark(#c9cbcf,#3d4046);--panel:light-dark(#f4f4f1,#18191c);--card:light-dark(#ffffff,#16171a);--field:light-dark(#ffffff,#15161a);--tar:#15171a;--tar2:#23262b;--y:#ffd400;--y2:#f2c900;--blue:light-dark(#0b4fb3,#7aafff);--red:light-dark(#c4221a,#ff7466);--redbg:light-dark(#fdecea,#3a1815);--amber:light-dark(#8a4c00,#ffb84d);--amberbg:light-dark(#fff1d4,#372911);--green:light-dark(#11713a,#6fd39a);--greenbg:light-dark(#e6f5ec,#13291d);--head:'Barlow Condensed','Arial Narrow',system-ui,sans-serif}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:20px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:var(--head);margin:0;line-height:1.05}
+p{margin:0}
+a{color:var(--blue)}
+button,input,select,textarea{font:inherit;color:inherit}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(18px,env(safe-area-inset-left)) 0 max(18px,env(safe-area-inset-right))}
+.top{background:var(--tar);color:#fff}
+.top .wrap{display:flex;align-items:center;gap:12px;min-height:64px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.mark{width:34px;height:34px;flex:none}
+.biz{font:700 24px/1 var(--head);margin-right:auto}
+.biz small{display:block;font:500 14px/1.3 Barlow,sans-serif;color:#b9bcc2;margin-top:3px}
+.contact{display:flex;gap:8px;flex-wrap:wrap}
+.pillbtn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:20px;background:var(--tar2);color:#fff;text-decoration:none;font-weight:600;font-size:15px;border:1px solid #33373d}
+.pillbtn:hover{border-color:#6b7078}
+.hero{background:var(--tar);color:#fff;padding:18px 0 34px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:22px 40px;align-items:center}
+.hero h1{font-size:clamp(36px,6vw,58px);text-wrap:balance}
+.hero h1 b{color:var(--y)}
+.hero .lede{color:#c9ccd1;margin-top:10px;font-size:17px;max-width:46ch}
+.hero .facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.fact{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:#dfe1e4;border:1px solid #3a3e45;border-radius:16px;padding:4px 10px}
+@media(max-width:860px){.hero .wrap{grid-template-columns:minmax(0,1fr)}}
+.dates{background:light-dark(#ffffff,#1e2024);color:var(--ink);border:1px solid light-dark(transparent,#3a3d44);border-radius:16px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,.35);display:grid;gap:14px}
+.dates input,.dates select{background:light-dark(#ffffff,#15161a)}
+.when{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:420px){.when{grid-template-columns:1fr}}
+.fld{display:grid;gap:6px}
+.fld>span{font-size:14px;font-weight:600}
+.fld>small{font-size:13px;color:var(--mute)}
+.dt{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:6px}
+input,select,textarea{width:100%;min-height:48px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line2);background:var(--field);font-size:16px}
+textarea{min-height:80px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 25%,transparent)}
+input[aria-invalid=true]{border-color:var(--red)}
+#r-promo::placeholder{text-transform:none}
+input[type=checkbox]{width:22px;height:22px;min-height:0;accent-color:#141518;flex:none;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 13px;border-radius:19px;border:1.5px solid var(--line2);background:var(--card);color:var(--ink);font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip:focus-visible,.btn:focus-visible,.pillbtn:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
+.check{display:flex;align-items:center;gap:10px;min-height:44px;font-size:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:50px;padding:0 18px;border-radius:10px;border:1.5px solid var(--line2);background:var(--card);color:var(--ink);font:700 17px/1.2 Barlow,sans-serif;text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--y);border-color:var(--y);color:#141414}
+.btn.primary:hover{background:var(--y2)}
+.btn[disabled],.btn[aria-disabled=true]{opacity:.5;pointer-events:none}
+.btn.block{width:100%}
+.notice{border-radius:12px;padding:12px 14px;font-size:15px;font-weight:500}
+.notice.y{background:var(--y);color:#141414}
+.notice.info{background:var(--panel);border:1px solid var(--line)}
+.notice.red{background:var(--redbg);color:var(--red)}
+.results{padding:26px 0 10px}
+.rhead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
+.rhead h2{font-size:clamp(26px,3.4vw,34px)}
+.rhead p{color:var(--mute)}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:18px}
+.car{position:relative;background:var(--card);border:1.5px solid var(--line);border-radius:16px 16px 18px 18px;overflow:hidden;display:flex;flex-direction:column}
+.pic{background:linear-gradient(180deg,var(--panel),color-mix(in srgb,var(--panel) 60%,var(--card)));padding:16px 14px 6px;display:flex;justify-content:center}
+.pic svg{width:100%;max-width:300px;height:auto;display:block}
+.cbody{padding:14px 16px 16px;display:grid;gap:8px;flex:1;align-content:start}
+.cname{font:700 24px/1.05 var(--head)}
+.specs{color:var(--mute);font-size:14px}
+.price{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:2px}
+.price b{display:inline-block;background:var(--y);color:#141414;border:1.5px solid #141414;border-radius:5px;padding:3px 9px 2px;font:700 28px/1 var(--head);font-variant-numeric:tabular-nums}
+.price span{color:var(--mute);font-size:14px}
+.small{font-size:14px;color:var(--mute)}
+.state{display:flex;gap:8px;align-items:flex-start;font-size:15px;font-weight:600;border-radius:9px;padding:8px 10px}
+.state.ok{background:var(--greenbg);color:var(--green)}
+.state.soft{background:var(--amberbg);color:var(--amber)}
+.state.no{background:var(--redbg);color:var(--red)}
+.state .ic{margin-top:1px}
+.car.no .pic{filter:grayscale(.8);opacity:.75}
+.cacts{display:grid;gap:8px;margin-top:4px}
+.how{padding:30px 0 40px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px;margin-top:14px;counter-reset:s}
+.step{border-top:3px solid var(--ink);padding-top:12px}
+.step h3{font-size:21px;margin-bottom:4px}
+.step h3::before{counter-increment:s;content:counter(s) '. ';color:var(--mute)}
+.need{margin:14px 0 0;padding-left:20px;display:grid;gap:4px}
+.foot{background:var(--tar);color:#c9ccd1;padding:24px 0 calc(28px + env(safe-area-inset-bottom));font-size:14px}
+.foot .wrap{display:grid;gap:10px}
+.foot b{color:#fff}
+.foot a{color:#fff}
+.layer{position:fixed;inset:0;background:rgba(10,11,13,.55);z-index:40}
+.sheet{position:fixed;z-index:41;left:50%;top:50%;transform:translate(-50%,-50%);width:min(620px,calc(100vw - 28px));max-height:calc(100dvh - 40px);display:flex;flex-direction:column;background:var(--card);color:var(--ink);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+@media(max-width:640px){.sheet{left:0;right:0;top:auto;bottom:0;transform:none;width:100%;max-height:94dvh;border-radius:18px 18px 0 0}}
+.sh-h{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 18px;border-bottom:1px solid var(--line)}
+.sh-h h2{flex:1;font-size:24px}
+.x{width:44px;height:44px;border:0;background:none;border-radius:10px;cursor:pointer;color:inherit}
+.x:hover{background:var(--panel)}
+.sh-b{padding:16px 18px 20px;overflow-y:auto;display:grid;gap:16px}
+.sh-f{padding:12px 18px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);display:grid;gap:8px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pair .btn{min-height:46px;font-size:16px;padding:0 10px}
+.linkbtn{border:0;background:none;padding:2px 0;color:var(--blue);font:600 15px/1.3 Barlow,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;justify-self:start;min-height:32px}
+.sum{border:1.5px solid var(--ink);border-radius:12px;padding:12px 14px;display:grid;gap:6px;font-variant-numeric:tabular-nums}
+.sum .l{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.sum .l.t{font-weight:700;font-size:19px;border-top:1px solid var(--line);padding-top:8px;margin-top:2px}
+.sum .l span:last-child{white-space:nowrap}
+.trip{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;background:var(--panel);border-radius:12px;padding:12px}
+.trip b{display:block;font:700 20px/1.1 var(--head)}
+.trip span{font-size:13px;color:var(--mute)}
+.trip .r{text-align:right}
+.done{border:2px solid var(--green);border-radius:12px;padding:14px;display:grid;gap:6px}
+.done h3{color:var(--green);font-size:22px}
+pre{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--panel);border-radius:9px;padding:10px;margin:0;overflow-wrap:anywhere}
+.err{color:var(--red);font-weight:600;font-size:15px}
+.empty{padding:22px;border:1.5px dashed var(--line2);border-radius:14px;text-align:center;color:var(--mute)}
+@media(prefers-reduced-motion:no-preference){.car{transition:transform .2s ease}.car:hover{transform:rotate(-.6deg)}}
+.alt{margin-top:10px}.alt summary{cursor:pointer;font-weight:600;color:var(--blue,#0b4fb3);padding:6px 0}.alt .pair{margin-top:8px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 3h14a3 3 0 0 1 3 3v17.5L16 30 6 23.5V6a3 3 0 0 1 3-3z" fill="#ffd400"/><circle cx="16" cy="9" r="2.6" fill="#15171a"/><path d="M10 17h12M10 21h8" stroke="#15171a" stroke-width="2.2" stroke-linecap="round"/></svg>
+  <div class="biz" id="biz">Car hire<small id="area"></small></div>
+  <nav class="contact" id="contact" aria-label="Contact"></nav>
+</div></header>
+<section class="hero"><div class="wrap">
+  <div>
+    <h1>Pick your dates. <b>See what's free.</b></h1>
+    <p class="lede" id="intro">Choose when you want to collect and return, and every car shows its price for your dates. Send a request and we'll message you to confirm.</p>
+    <div class="facts" id="facts"></div>
+  </div>
+  <form class="dates" id="dates" autocomplete="off" aria-label="Your dates">
+    <div id="notes" style="display:grid;gap:8px"></div>
+    <div class="when">
+      <label class="fld"><span>Collect</span><span class="dt"><input type="date" id="sd" aria-label="Collection date"><select id="stime" aria-label="Collection time"></select></span></label>
+      <label class="fld"><span>Return</span><span class="dt"><input type="date" id="ed" aria-label="Return date"><select id="etime" aria-label="Return time"></select></span></label>
+    </div>
+    <div class="chips" id="presets"></div>
+    <div class="row2"><label class="fld"><span>Driver's age</span><input type="number" id="age" min="17" max="99" inputmode="numeric" placeholder="Optional"></label><label class="check"><input type="checkbox" id="auto"> <span>Automatic only</span></label></div>
+    <p class="err" id="derr" hidden></p>
+  </form>
+</div></section>
+<main>
+  <section class="results"><div class="wrap">
+    <div class="rhead"><div><h2 id="rtitle">Loading the cars…</h2><p id="rsub"></p></div></div>
+    <div class="filters chips" id="cats"></div>
+    <div class="grid" id="grid"></div>
+  </div></section>
+  <section class="how"><div class="wrap">
+    <h2 style="font-size:30px">How it works</h2>
+    <div class="steps">
+      <div class="step"><h3>Request a car</h3><p>Pick your dates and a car, add any extras, and send the request. It comes straight to us.</p></div>
+      <div class="step"><h3>We confirm</h3><p>We check it and reply to confirm. Nothing is booked until we do, and nothing is paid on this page.</p></div>
+      <div class="step"><h3>Collect and go</h3><p>Bring what's below. The deposit comes back after the hire if the car comes back as it went out.</p></div>
+    </div>
+    <ul class="need" id="need"></ul>
+  </div></section>
+</main>
+<footer class="foot"><div class="wrap" id="foot"></div></footer>
+<div class="layer" id="layer" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t" hidden>
+  <div class="sh-h"><h2 id="sheet-t">Request</h2><button type="button" class="x" id="sheet-x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="sh-b" id="sheet-b"></div>
+  <div class="sh-f" id="sheet-f"></div>
+</div>
+<script>
+{
+  const $ = (s, el) => (el || document).querySelector(s);
+  const $$ = (s, el) => [...(el || document).querySelectorAll(s)];
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+  const DAY = 864e5, HOUR = 36e5, MIN = 6e4;
+  const pad = n => String(n).padStart(2, '0');
+  const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const num = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
+  const r2 = n => Math.round((+n || 0) * 100) / 100;
+  const money = n => { n = r2(n); return '£' + (Math.abs(n % 1) > 0.004 ? n.toFixed(2) : Math.round(n).toLocaleString('en-GB')); };
+  const D = s => { if (!s) return null; const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(s); return m ? new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0)) : null; };
+  const T = s => { const d = D(s); return d ? d.getTime() : NaN; };
+  const isoDay = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const isoDT = d => isoDay(d) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  const sod = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const fmtD = t => { const d = new Date(t); return WD[d.getDay()] + ' ' + d.getDate() + ' ' + MO[d.getMonth()] + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : ''); };
+  const fmtDT = t => { const d = new Date(t); return fmtD(t) + ', ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  const ageOn = (dob, at) => { const b = D(dob); if (!b) return null; const a = new Date(at); let y = a.getFullYear() - b.getFullYear(); if (a.getMonth() < b.getMonth() || (a.getMonth() === b.getMonth() && a.getDate() < b.getDate())) y--; return y; };
+  const IC = {wa: '<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9 9.5c.3 1.8 2.6 4.2 4.5 4.6l1-1.1 1.8.8c-.2 1-1 1.6-2 1.6-3 0-6.5-3.5-6.5-6.5 0-1 .6-1.8 1.6-2l.8 1.8z"/>', phone: '<path d="M6.5 3.5h3l1.5 4.5-2 1.5a11 11 0 0 0 5.5 5.5l1.5-2 4.5 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4.5 5.5a2 2 0 0 1 2-2z"/>', snap: '<path d="M12 3.5c3 0 4.6 2.2 4.6 4.7v2.3l1.8-.5c.5 0 .7.6.3.9l-2 1.2c.6 1.6 1.8 2.8 3.3 3.3-.3.7-1.5 1-2.6 1.1l-.4 1.3-1.8-.2c-1 .1-1.8 1.3-3.2 1.3s-2.2-1.2-3.2-1.3l-1.8.2-.4-1.3c-1.1-.1-2.3-.4-2.6-1.1 1.5-.5 2.7-1.7 3.3-3.3l-2-1.2c-.4-.3-.2-.9.3-.9l1.8.5V8.2C7.4 5.7 9 3.5 12 3.5z"/>', ok: '<path d="m5 12.5 4.5 4.5L19 7.5"/>', no: '<circle cx="12" cy="12" r="8.5"/><path d="M8 8l8 8"/>', clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', copy: '<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9.5a1 1 0 0 0 1 1h3.5"/>', pin: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>'};
+  IC.send = '<path d="M4 12 20 4l-5 16-3.5-6.5z"/><path d="m11.5 13.5 3-3"/>';
+  const icon = n => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (IC[n] || '') + '</svg>';
+
+  let DATA = null; const ST = {cat: '', auto: false, age: ''};
+  const B = () => (DATA && DATA.business) || {};
+  const R = () => (DATA && DATA.rules) || {graceMins: 59, turnaroundHrs: 2, youngAge: 25, extras: []};
+
+  /* ---------- the car, drawn in its own paint ---------- */
+  const PAINT = [[/white|pearl|ivory/i, '#f3f3f0'], [/black|obsidian|onyx|santorini/i, '#1e2023'], [/silver|grey|gray|graphite|platinum/i, '#a7abb1'], [/lapiz|navarra|navy|blue/i, '#1f4ea0'], [/red|flame|ruby/i, '#c62828'], [/green|british/i, '#2f6b44'], [/orange/i, '#df6a1d'], [/yellow/i, '#efc100'], [/brown|bronze|copper/i, '#7a5233'], [/purple|violet/i, '#5b3a8a']];
+  const paintOf = c => (PAINT.find(p => p[0].test(c.colour || '')) || [0, '#7d8389'])[1];
+  const MODEL_KIND = [[/evoque|velar|range rover|discovery|defender|\bx[1-7]\b|\bq[2-8]\b|gl[abces]\b|tiguan|t-roc|touareg|kodiaq|karoq|qashqai|juke|sportage|tucson|kona|xc[469]0|model y|ev6|enyaq|id\.?[45]|ioniq 5|cayenne|macan|kuga|puma|3008|5008|cx-[35]|rav4|c-hr|ix\b|eq[abce]\b|zs\b|hs\b/i, 'suv'],
+    [/v-class|vito|transit|sharan|alhambra|galaxy|s-max|zafira|touran|carnival|staria|multivan|caddy|berlingo|traffic|trafic|vivaro|tourneo/i, 'mpv'],
+    [/\bm[2-8]\b|911|cayman|boxster|supra|mustang|amg gt|c ?63|e ?63|rs ?[4-7]\b|r8|f-type|z4|gt86|gr86|coupe|coupé/i, 'sport'],
+    [/model 3|\bi[457]\b|[345] series|\b3[1-4]0[ide]?\b|c-class|e-class|s-class|\bc ?[23]\d0\b|\ba[4-8]\b|passat|arteon|insignia|mondeo|octavia|superb|camry|polestar|ioniq 6|saloon|limousine/i, 'saloon'],
+    [/a-class|\ba ?[12]\d0\b|1 series|\b1[1-4]\di?\b|m135|\ba[13]\b|\bs[13]\b|rs ?3|golf|polo|up!|fiesta|focus|corsa|astra|yaris|aygo|clio|captur|208|308|i[123]0|mg ?[34]|leon|ibiza|fabia|scala|mini|swift|micra|jazz|civic|type r|zoe|e-208|ceed|rio|picanto|hatch|sportback/i, 'hatch']];
+  const KIND = c => { const m = c.make + ' ' + c.model; const hit = MODEL_KIND.find(k => k[0].test(m)); if (hit) return hit[1]; return /people|van|mpv/i.test(c.category) ? 'mpv' : /suv|4x4/i.test(c.category) ? 'suv' : /performance|sport/i.test(c.category) ? 'sport' : /prestige|saloon|executive/i.test(c.category) ? 'saloon' : 'hatch'; };
+  const SHAPES = {
+    hatch: {body: 'M34 88 C30 74 36 66 52 63 L86 58 C100 40 114 33 134 32 L196 31 C212 31 222 38 232 52 L242 64 C258 66 268 70 270 78 L270 88 Z', glass: 'M98 58 C108 44 118 38 134 37 L170 37 L172 58 Z M178 37 L194 37 C206 37 214 44 224 58 L180 58 Z', w: [86, 222], r: 19, light: [262, 70], tail: [36, 70]},
+    saloon: {body: 'M24 88 C22 76 28 70 44 68 L82 62 C100 42 118 35 140 34 L192 34 C212 35 226 46 238 60 C262 62 276 66 280 76 L280 88 Z', glass: 'M96 62 C110 46 124 40 142 39 L172 39 L174 61 Z M180 39 L192 39 C208 40 220 48 230 60 L182 61 Z', w: [80, 232], r: 19, light: [274, 72], tail: [26, 74]},
+    suv: {body: 'M30 90 C28 66 34 58 52 56 L82 52 C92 34 104 26 124 25 L210 24 C228 24 238 34 246 50 L254 58 C268 60 276 66 276 76 L276 90 Z', glass: 'M94 52 C102 38 112 31 126 30 L164 30 L165 52 Z M172 30 L208 30 C222 30 230 38 238 52 L173 52 Z', w: [86, 226], r: 21, light: [270, 66], tail: [32, 64]},
+    sport: {body: 'M22 88 C20 78 26 72 42 70 L90 64 C110 46 128 40 152 39 L196 40 C214 42 226 52 238 62 C264 64 280 70 282 80 L282 88 Z', glass: 'M108 63 C120 50 132 45 152 44 L178 44 L179 63 Z M186 44 L196 44 C210 46 220 54 230 63 L187 63 Z', w: [80, 236], r: 19, light: [276, 75], tail: [24, 76]},
+    mpv: {body: 'M26 90 L26 52 C26 36 36 26 56 24 L196 22 C216 22 230 30 242 46 L256 62 C270 64 278 70 278 78 L278 90 Z', glass: 'M40 52 L40 40 C40 33 46 30 56 30 L98 30 L98 52 Z M104 30 L148 30 L148 52 L104 52 Z M154 30 L196 29 C210 29 220 36 230 52 L154 52 Z', w: [76, 228], r: 20, light: [272, 70], tail: [28, 60]}
+  };
+  function carSvg(c){
+    const k = SHAPES[KIND(c)], paint = paintOf(c), light = paint === '#f3f3f0' || paint === '#efc100' || paint === '#a7abb1';
+    const wheel = x => '<circle cx="' + x + '" cy="88" r="' + (k.r + 3) + '" fill="#0d0e10" opacity=".22"/><circle cx="' + x + '" cy="90" r="' + k.r + '" fill="#18191c"/><circle cx="' + x + '" cy="90" r="' + (k.r * .55) + '" fill="#c9ccd1"/><circle cx="' + x + '" cy="90" r="' + (k.r * .2) + '" fill="#7d8187"/>';
+    return '<svg viewBox="0 0 304 118" role="img" aria-label="' + esc((c.colour ? c.colour + ' ' : '') + c.make + ' ' + c.model) + '"><ellipse cx="152" cy="108" rx="128" ry="7" fill="#000" opacity=".16"/>' +
+      '<path d="' + k.body + '" fill="' + paint + '" stroke="' + (light ? 'rgba(0,0,0,.28)' : 'rgba(0,0,0,.35)') + '" stroke-width="1.5"/>' +
+      '<path d="' + k.body + '" fill="url(#sh)" opacity=".5"/>' +
+      '<path d="' + k.glass + '" fill="#26323f"/>' + '<path d="' + k.glass + '" fill="url(#gl)" opacity=".7"/>' +
+      '<path d="M60 76 L250 74" stroke="rgba(255,255,255,.28)" stroke-width="2" fill="none"/>' +
+      '<rect x="' + (k.light[0] - 9) + '" y="' + k.light[1] + '" width="12" height="6" rx="3" fill="#fff6c8"/><rect x="' + (k.tail[0] - 1) + '" y="' + k.tail[1] + '" width="9" height="7" rx="2" fill="#d4342c"/>' +
+      wheel(k.w[0]) + wheel(k.w[1]) +
+      '<defs><linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient><linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fb6cc"/><stop offset=".5" stop-color="#26323f" stop-opacity="0"/></linearGradient></defs></svg>';
+  }
+
+  /* ---------- prices, the same rules as the hire desk ---------- */
+  function hireDays(s, e){ const g = num(R().graceMins) * MIN; const ms = e - s; return ms > 0 ? Math.max(1, Math.ceil((ms - g) / DAY)) : 1; }
+  function basePrice(c, s, e){
+    const days = hireDays(s, e); const r = c.rates || {}; const day = num(r.day), wkd = num(r.weekend), wk = num(r.week);
+    let base = days * day, note = plural(days, 'day') + ' at ' + money(day);
+    if (wk && days >= 7) { const w = Math.floor(days / 7), rem = days % 7; const p = w * wk + Math.min(rem * day, wk); if (p < base) { base = p; note = plural(w, 'week') + (rem ? ' + ' + plural(rem, 'day') : ''); } }
+    if (wkd && days <= 3) { const sd = new Date(s).getDay(); if (sd === 5 || sd === 6) { const mon = sod(addDays(new Date(s), (8 - sd) % 7)); mon.setHours(12, 0, 0, 0); if (e <= mon.getTime() && wkd < base) { base = wkd; note = 'Weekend rate'; } } }
+    return {days: days, base: r2(base), note: note};
+  }
+  const youngExtra = () => (R().extras || []).find(x => /young/i.test(x.label));
+  function quote(c, s, e, picked, age, promo){
+    const bp = basePrice(c, s, e); const ex = (picked || []).slice();
+    const yx = youngExtra(); if (yx && age && age < num(R().youngAge) && !ex.some(x => x.label === yx.label)) ex.push(yx);
+    const lines = ex.map(x => ({label: x.label, amount: r2(num(x.amount) * (x.perDay ? bp.days : 1)), perDay: x.perDay, rate: num(x.amount)}));
+    const gross = bp.base + lines.reduce((a, x) => a + x.amount, 0);
+    const disc = promo ? r2(promo.type === 'pct' ? gross * num(promo.value) / 100 : Math.min(gross, num(promo.value))) : 0;
+    return {bp: bp, lines: lines, gross: r2(gross), disc: disc, total: Math.max(0, r2(gross - disc))};
+  }
+  const miles = (c, days, ex) => !num(c.milesPerDay) || (ex || []).some(x => /unlimited/i.test(x.label)) ? 'Unlimited miles' : (num(c.milesPerDay) * days) + ' miles included, then ' + (num(c.excessPerMile) < 1 ? Math.round(num(c.excessPerMile) * 100) + 'p' : money(c.excessPerMile)) + ' a mile';
+  function findPromo(code){ code = String(code || '').trim().toUpperCase(); if (!code) return null; const today = isoDay(new Date()); return ((DATA && DATA.promos) || []).find(p => p.code === code && (!p.from || p.from <= today) && (!p.to || p.to >= today)) || null; }
+
+  /* ---------- free or booked ---------- */
+  function hits(list, s, e, buf){ return (list || []).filter(iv => { const a = T(iv[0]), b = T(iv[1]); return s < b + buf && e + buf > a; }); }
+  function status(c, s, e){
+    const buf = num(R().turnaroundHrs) * HOUR;
+    const hard = hits(DATA.busy && DATA.busy[c.id], s, e, buf);
+    if (hard.length) return {ok: false, next: nextFree(c, s, e - s)};
+    const soft = hits(DATA.soft && DATA.soft[c.id], s, e, buf);
+    return {ok: true, soft: soft.length > 0};
+  }
+  /* the page offers times from 07:00 to 22:00 */
+  function openSlot(t){ const d = new Date(Math.ceil(t / (30 * MIN)) * 30 * MIN); const m = d.getHours() * 60 + d.getMinutes(); if (m < 7 * 60) d.setHours(7, 0, 0, 0); else if (m > 22 * 60) { d.setDate(d.getDate() + 1); d.setHours(7, 0, 0, 0); } return d.getTime(); }
+  function nextFree(c, s, len){
+    const buf = num(R().turnaroundHrs) * HOUR; const all = ((DATA.busy && DATA.busy[c.id]) || []).map(iv => [T(iv[0]), T(iv[1])]).sort((a, b) => a[0] - b[0]);
+    let t = s; const lim = s + 75 * DAY;
+    for (let i = 0; i < 200 && t < lim; i++) { t = openSlot(t); const e = openSlot(t + len); const hit = all.find(iv => t < iv[1] + buf && e + buf > iv[0]); if (!hit) return t; t = hit[1] + buf; }
+    return null;
+  }
+  const peaksFor = (s, e) => ((DATA && DATA.peaks) || []).filter(p => s < T(p.to) + DAY && e > T(p.from));
+
+  /* ---------- the dates card ---------- */
+  const times = []; for (let h = 7; h <= 22; h++) { times.push(pad(h) + ':00'); if (h < 22) times.push(pad(h) + ':30'); }
+  ['stime', 'etime'].forEach(id => { $('#' + id).innerHTML = times.map(t => '<option>' + t + '</option>').join(''); });
+  function setRange(s, e){ $('#sd').value = isoDay(s); $('#stime').value = pad(s.getHours()) + ':' + pad(s.getMinutes()); $('#ed').value = isoDay(e); $('#etime').value = pad(e.getHours()) + ':' + pad(e.getMinutes()); save(); render(); }
+  const range = () => ({s: T($('#sd').value + 'T' + $('#stime').value), e: T($('#ed').value + 'T' + $('#etime').value)});
+  function nextDow(dow, h){ const d = new Date(); const x = sod(addDays(d, (dow - d.getDay() + 7) % 7)); x.setHours(h, 0, 0, 0); if (x.getTime() < Date.now() + HOUR) x.setDate(x.getDate() + 7); return x; }
+  const PRESETS = [['Tomorrow', () => { const s = sod(addDays(new Date(), 1)); s.setHours(10, 0, 0, 0); return [s, addDays(s, 1)]; }], ['Fri to Mon', () => { const f = nextDow(5, 17); const m = addDays(sod(f), 3); m.setHours(10, 0, 0, 0); return [f, m]; }], ['3 days', () => { const s = sod(addDays(new Date(), 1)); s.setHours(10, 0, 0, 0); return [s, addDays(s, 3)]; }], ['A week', () => { const s = sod(addDays(new Date(), 1)); s.setHours(10, 0, 0, 0); return [s, addDays(s, 7)]; }]];
+  $('#presets').innerHTML = PRESETS.map((p, i) => '<button type="button" class="chip" data-p="' + i + '">' + p[0] + '</button>').join('');
+  $('#presets').addEventListener('click', ev => { const b = ev.target.closest('[data-p]'); if (b) { const r = PRESETS[+b.dataset.p][1](); setRange(r[0], r[1]); } });
+  $('#dates').addEventListener('input', ev => { if (ev.target.id === 'sd' || ev.target.id === 'stime') { const r = range(); if (!(r.e > r.s)) { const e = new Date(r.s + DAY); $('#ed').value = isoDay(e); $('#etime').value = $('#stime').value; } } ST.age = $('#age').value; ST.auto = $('#auto').checked; save(); render(); });
+  $('#dates').addEventListener('submit', ev => ev.preventDefault());
+  function save(){ try { localStorage.setItem('book-dates', JSON.stringify({s: $('#sd').value + 'T' + $('#stime').value, e: $('#ed').value + 'T' + $('#etime').value, age: $('#age').value})); } catch (e) { /* private mode */ } }
+  (function restore(){
+    let s = null, e = null, age = '';
+    try { const v = JSON.parse(localStorage.getItem('book-dates') || 'null'); if (v && T(v.s) > Date.now() && T(v.e) > T(v.s)) { s = D(v.s); e = D(v.e); age = v.age || ''; } } catch (err) { /* ignore */ }
+    if (!s) { s = sod(addDays(new Date(), 1)); s.setHours(10, 0, 0, 0); e = addDays(s, 1); }
+    $('#sd').value = isoDay(s); $('#stime').value = pad(s.getHours()) + ':' + pad(s.getMinutes()); $('#ed').value = isoDay(e); $('#etime').value = pad(e.getHours()) + ':' + pad(e.getMinutes()); $('#age').value = age; ST.age = age;
+    $('#sd').min = isoDay(new Date()); $('#ed').min = isoDay(new Date());
+  })();
+
+  /* ---------- the cars ---------- */
+  function render(){
+    if (!DATA) return;
+    const {s, e} = range(); const age = num(ST.age) || 0; const derr = $('#derr');
+    let err = '';
+    if (!(s > 0) || !(e > 0)) err = 'Pick a collection and return date.';
+    else if (e <= s) err = 'The return has to be after the collection.';
+    else if (s < Date.now() - 30 * MIN) err = 'Pick a collection time from now on.';
+    else if (s > Date.now() + num(R().daysAhead || 120) * DAY) err = 'We take bookings up to ' + num(R().daysAhead || 120) + ' days ahead.';
+    derr.textContent = err; derr.hidden = !err;
+    const cats = [...new Set(DATA.cars.map(c => c.category).filter(Boolean))];
+    $('#cats').innerHTML = cats.length > 1 ? ['', ...cats].map(c => '<button type="button" class="chip" data-cat="' + esc(c) + '" aria-pressed="' + (ST.cat === c) + '">' + (c ? esc(c) : 'All cars') + '</button>').join('') : '';
+    const pk = err ? [] : peaksFor(s, e); const notes = [];
+    if (pk.length) notes.push('<div class="notice info"><b>' + esc(pk[0].name) + '</b> is busy. ' + (num(pk[0].minDays) ? 'Minimum ' + plural(num(pk[0].minDays), 'day') + '. ' : '') + 'We confirm the price when we reply.</div>');
+    $('#notes').innerHTML = notes.join('');
+    let rows = DATA.cars.filter(c => (!ST.cat || c.category === ST.cat) && (!ST.auto || /auto/i.test(c.transmission || '')));
+    rows = rows.map(c => { const st = err ? {ok: false} : status(c, s, e); const q = err ? null : quote(c, s, e, [], age, null); const young = age && num(c.minAge) && age < num(c.minAge); return {c: c, st: st, q: q, young: young, ok: !err && st.ok && !young}; });
+    rows.sort((a, b) => (b.ok - a.ok) || ((a.q ? a.q.total : 0) - (b.q ? b.q.total : 0)));
+    const free = rows.filter(r => r.ok);
+    $('#rtitle').textContent = err ? 'Pick your dates' : free.length ? plural(free.length, 'car') + ' free' + (free.length ? ', from ' + money(Math.min(...free.map(r => r.q.total))) : '') : 'Nothing free for those dates';
+    $('#rsub').textContent = err ? '' : fmtDT(s) + ' to ' + fmtDT(e) + ' · ' + plural(hireDays(s, e), 'day');
+    const on = !!DATA.on;
+    $('#grid').innerHTML = rows.length ? rows.map(r => {
+      const c = r.c, q = r.q;
+      let state, acts;
+      if (err) { state = ''; acts = ''; }
+      else if (r.young) { state = '<div class="state no">' + icon('no') + '<span>For drivers aged ' + num(c.minAge) + ' and over</span></div>'; acts = ''; }
+      else if (!r.st.ok) { state = '<div class="state no">' + icon('no') + '<span>Booked then' + (r.st.next ? '. Free from ' + esc(fmtDT(r.st.next)) : '') + '</span></div>' + (r.st.next ? '<button type="button" class="linkbtn" data-move="' + r.st.next + '">Move my dates to then</button>' : ''); acts = '<button type="button" class="btn block" data-wait="' + esc(c.id) + '"' + (on ? '' : ' disabled') + '>' + icon('clock') + 'Tell me when it\'s free</button>'; }
+      else { state = r.st.soft ? '<div class="state soft">' + icon('clock') + '<span>Free, but someone has asked about it. Be quick.</span></div>' : '<div class="state ok">' + icon('ok') + '<span>Free for your dates</span></div>'; acts = '<button type="button" class="btn primary block" data-req="' + esc(c.id) + '"' + (on ? '' : ' disabled') + '>' + (on ? 'Request this car' : 'Requests open soon') + '</button>'; }
+      return '<article class="car' + (r.ok || err ? '' : ' no') + '"><div class="pic">' + carSvg(c) + '</div><div class="cbody"><h3 class="cname">' + esc(c.make + ' ' + c.model) + '</h3><p class="specs">' + esc([c.year, c.transmission, c.fuel === 'Electric' ? 'Electric' : c.fuel, c.seats ? c.seats + ' seats' : ''].filter(Boolean).join(' · ')) + '</p>' +
+        (q ? '<div class="price"><b>' + money(q.total) + '</b><span>' + esc(q.bp.note) + (q.lines.length ? ' + young driver fee' : '') + '</span></div>' : '<div class="price"><b>' + money(c.rates.day) + '</b><span>a day</span></div>') +
+        '<p class="small">' + esc(miles(c, q ? q.bp.days : 1, []) + ' · deposit ' + money(c.deposit)) + '</p>' + state + (acts ? '<div class="cacts">' + acts + '</div>' : '') + '</div></article>';
+    }).join('') : '<div class="empty">No cars match. Try all types.</div>';
+    if (!err && !free.length && rows.length && on) $('#grid').insertAdjacentHTML('afterbegin', '<div class="empty" style="grid-column:1/-1"><p>Everything\'s booked for those dates.</p><p style="margin-top:10px"><button type="button" class="btn primary" data-wait="any">Ask to be told when a car frees up</button></p></div>');
+  }
+  $('#cats').addEventListener('click', ev => { const b = ev.target.closest('[data-cat]'); if (b) { ST.cat = b.dataset.cat; render(); } });
+  $('#grid').addEventListener('click', ev => {
+    const r = ev.target.closest('[data-req]'); if (r) return openReq(r.dataset.req);
+    const w = ev.target.closest('[data-wait]'); if (w) return openWait(w.dataset.wait);
+    const mv = ev.target.closest('[data-move]');
+    if (mv) { const {s, e} = range(); const ns = +mv.dataset.move; setRange(new Date(ns), new Date(openSlot(ns + Math.max(HOUR, e - s)))); $('.dates').scrollIntoView({block: 'start', behavior: 'smooth'}); }
+  });
+
+  /* ---------- the request ---------- */
+  let lastFocus = null;
+  function openSheet(title, body, foot){ lastFocus = document.activeElement; $('#sheet-t').textContent = title; $('#sheet-b').innerHTML = body; $('#sheet-f').innerHTML = foot; $('#layer').hidden = false; $('#sheet').hidden = false; const f = $('#sheet-b input, #sheet-b select'); (f || $('#sheet-x')).focus(); }
+  function closeSheet(){ $('#layer').hidden = true; $('#sheet').hidden = true; if (lastFocus && document.contains(lastFocus)) lastFocus.focus(); }
+  $('#sheet-x').addEventListener('click', closeSheet); $('#layer').addEventListener('click', closeSheet);
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !$('#sheet').hidden) closeSheet(); });
+  const car = id => DATA.cars.find(c => c.id === id);
+  function sendButtons(kind){
+    const b = B(); const wa = b.whatsapp; const direct = HIRE.connected && DATA && DATA.on;
+    if (direct) return '<button type="button" class="btn primary block" id="send-direct">' + icon('send') + 'Send ' + kind + '</button>' +
+      '<details class="alt"><summary>Or send it yourself' + (wa ? ' on WhatsApp' : '') + '</summary><div class="pair">' +
+      (wa ? '<a class="btn" id="send-wa" href="#" target="_blank" rel="noopener">' + icon('wa') + 'WhatsApp</a>' : '') +
+      '<button type="button" class="btn" id="send-copy">' + icon('copy') + 'Copy it</button></div></details>';
+    const copy = '<button type="button" class="btn' + (wa ? '' : ' primary') + '" id="send-copy">' + icon('copy') + (wa ? 'Copy it' : 'Copy the ' + kind) + '</button>';
+    const snap = b.snapchat ? '<a class="btn" href="https://www.snapchat.com/add/' + esc(encodeURIComponent(b.snapchat)) + '" target="_blank" rel="noopener">' + icon('snap') + 'Our Snapchat</a>' : '';
+    return (wa ? '<a class="btn primary block" id="send-wa" href="#" target="_blank" rel="noopener">' + icon('wa') + 'Send ' + kind + ' on WhatsApp</a>' : '') +
+      (snap ? '<div class="pair">' + copy + snap + '</div>' : copy);
+  }
+  function openReq(id){
+    const c = car(id); if (!c) return; const {s, e} = range();
+    const extras = (R().extras || []).filter(x => !/young/i.test(x.label));
+    const pk = peaksFor(s, e)[0]; const days = hireDays(s, e);
+    const body = '<div class="trip"><div><span>Collect</span><b>' + esc(fmtD(s)) + '</b><span>' + esc(fmtDT(s).split(', ')[1]) + '</span></div><div aria-hidden="true">→</div><div class="r"><span>Return</span><b>' + esc(fmtD(e)) + '</b><span>' + esc(fmtDT(e).split(', ')[1]) + ' · ' + plural(days, 'day') + '</span></div></div>' +
+      (pk && num(pk.minDays) > days ? '<div class="notice red">Over ' + esc(pk.name) + ' the minimum is ' + plural(num(pk.minDays), 'day') + '. You can still ask.</div>' : '') +
+      (extras.length ? '<div class="fld"><span>Extras</span>' + extras.map((x, i) => '<label class="check"><input type="checkbox" data-x="' + i + '"> <span>' + esc(x.label) + ' <span class="small">' + money(x.amount) + (x.perDay ? ' a day' : '') + '</span></span></label>').join('') + '</div>' : '') +
+      '<label class="fld" id="r-delwrap" hidden><span>Deliver to</span><input id="r-del" autocomplete="street-address" placeholder="Address and postcode"></label>' +
+      '<label class="fld"><span>Promo code</span><input id="r-promo" autocapitalize="characters" style="text-transform:uppercase" placeholder="If you have one"><small id="r-promomsg"></small></label>' +
+      '<div class="sum" id="r-sum"></div>' +
+      '<div class="fld"><span style="font:700 21px/1.1 var(--head)">Your details</span><small>So we can confirm and get the hire agreement ready.</small></div>' +
+      '<label class="fld"><span>Full name, as on your licence</span><input id="r-name" autocomplete="name"></label>' +
+      '<label class="fld"><span>Mobile</span><input id="r-phone" type="tel" autocomplete="tel" inputmode="tel"></label>' +
+      '<label class="fld"><span>Date of birth</span><input id="r-dob" type="date" autocomplete="bday"></label>' +
+      '<label class="fld"><span>Anything else?</span><textarea id="r-notes" rows="2" placeholder="e.g. Picking up for a wedding"></textarea></label>' +
+      '<p class="err" id="r-err" hidden></p><div class="done" id="r-done" hidden><h3>Nearly there</h3><p>Send the message in WhatsApp to finish. We\'ll reply to confirm. Nothing is booked until we do.</p><pre id="r-msg"></pre></div>';
+    openSheet('Request the ' + (c.model || c.make), body, sendButtons('request'));
+    $('#sheet-b').oninput = ev => { reqSummary(c); clearErr(ev.target); }; reqSummary(c);
+    wireSend(() => validateReq(c), () => reqMessage(c), 'booking');
+  }
+  function clearErr(el){ if (el && el.getAttribute && el.getAttribute('aria-invalid') === 'true') el.setAttribute('aria-invalid', 'false'); const er = $('#r-err'); if (er && !er.hidden && !$('#sheet-b [aria-invalid=true]')) er.hidden = true; }
+  function pickedExtras(){ const ex = (R().extras || []).filter(x => !/young/i.test(x.label)); return $$('#sheet-b [data-x]').filter(i => i.checked).map(i => ex[+i.dataset.x]); }
+  function reqSummary(c){
+    const {s, e} = range(); const dob = $('#r-dob').value; const age = dob ? ageOn(dob, s) : num(ST.age) || 0;
+    const picked = pickedExtras(); const pr = findPromo($('#r-promo').value);
+    $('#r-delwrap').hidden = !picked.some(x => /deliver/i.test(x.label));
+    const pm = $('#r-promomsg'); const raw = $('#r-promo').value.trim();
+    pm.textContent = !raw ? '' : pr ? (pr.type === 'pct' ? pr.value + '% off' : money(pr.value) + ' off') + ' applied' : 'That code isn\'t current. We\'ll check it when we reply.';
+    const q = quote(c, s, e, picked, age, pr);
+    $('#r-sum').innerHTML = '<div class="l"><span>Hire · ' + esc(q.bp.note) + '</span><span>' + money(q.bp.base) + '</span></div>' + q.lines.map(x => '<div class="l"><span>' + esc(x.label) + (x.perDay ? ' · ' + money(x.rate) + ' a day' : '') + '</span><span>' + money(x.amount) + '</span></div>').join('') + (q.disc ? '<div class="l"><span>Promo ' + esc(pr.code) + '</span><span>−' + money(q.disc) + '</span></div>' : '') +
+      '<div class="l t"><span>Total</span><span>' + money(q.total) + '</span></div><div class="l"><span>Deposit, refunded after</span><span>' + money(c.deposit) + '</span></div><div class="l"><span>Miles</span><span>' + esc(miles(c, q.bp.days, picked)) + '</span></div>';
+    return q;
+  }
+  function validateReq(c){
+    const {s} = range(); const errs = [];
+    const name = $('#r-name').value.trim(), phone = $('#r-phone').value.trim(), dob = $('#r-dob').value;
+    $('#r-name').setAttribute('aria-invalid', !name); $('#r-phone').setAttribute('aria-invalid', phone.replace(/\D/g, '').length < 10); $('#r-dob').setAttribute('aria-invalid', !dob);
+    if (!name) errs.push('your name'); if (phone.replace(/\D/g, '').length < 10) errs.push('a mobile number'); if (!dob) errs.push('your date of birth');
+    const age = dob ? ageOn(dob, s) : null;
+    if (!$('#r-delwrap').hidden && !$('#r-del').value.trim()) { errs.push('the delivery address'); $('#r-del').setAttribute('aria-invalid', true); }
+    let msg = errs.length ? 'Please add ' + errs.join(', ').replace(/, ([^,]*)$/, ' and $1') + '.' : '';
+    if (!msg && age != null && num(c.minAge) && age < num(c.minAge)) msg = 'This car is for drivers aged ' + num(c.minAge) + ' and over.';
+    const el = $('#r-err'); el.textContent = msg; el.hidden = !msg;
+    if (msg) { const f = $('#sheet-b [aria-invalid=true]'); if (f) f.focus(); }
+    return !msg;
+  }
+  function reqMessage(c){
+    const {s, e} = range(); const q = reqSummary(c); const picked = pickedExtras(); const pr = findPromo($('#r-promo').value); const dob = $('#r-dob').value.split('-');
+    const L = ['BOOKING REQUEST', 'Car: ' + c.make + ' ' + c.model, 'Collect: ' + fmtDT(s), 'Return: ' + fmtDT(e), 'Extras: ' + (q.lines.map(x => x.label).join(', ') || 'None'), 'Price shown: ' + money(q.total) + ' for ' + plural(q.bp.days, 'day') + ', deposit ' + money(c.deposit)];
+    const raw = $('#r-promo').value.trim(); if (raw) L.push('Promo code: ' + (pr ? pr.code : raw.toUpperCase()));
+    L.push('Name: ' + $('#r-name').value.trim(), 'Mobile: ' + $('#r-phone').value.trim(), 'Date of birth: ' + (dob.length === 3 ? dob[2] + '/' + dob[1] + '/' + dob[0] : ''));
+    if (!$('#r-delwrap').hidden) L.push('Deliver to: ' + $('#r-del').value.trim());
+    const n = $('#r-notes').value.trim(); if (n) L.push('Notes: ' + n.replace(/\s+/g, ' '));
+    L.push('Ref: ' + c.id + ' ' + isoDT(new Date(s)) + ' ' + isoDT(new Date(e)));
+    return L.join('\n');
+  }
+  function wireSend(validate, message, kind){
+    const wa = $('#send-wa'), cp = $('#send-copy'), dr = $('#send-direct');
+    const show = t => { $('#r-msg').textContent = t; $('#r-done').hidden = false; };
+    if (dr) dr.addEventListener('click', () => {
+      if (!validate()) return;
+      const t = message(); const name = ($('#r-name') || {}).value || ''; const phone = ($('#r-phone') || {}).value || '';
+      dr.disabled = true; dr.lastChild.nodeValue = 'Sending…';
+      HIRE.submit(kind, t, name.trim(), phone.trim(), '').then(() => {
+        $('#sheet-b').innerHTML = '<div class="done" id="r-done"><h3>' + (kind === 'wait' ? 'You\'re on the list' : 'Request sent') + '</h3><p>' +
+          esc(kind === 'wait' ? 'We\'ll message you on ' + phone.trim() + ' if it frees up.' : 'We\'ll message you on ' + phone.trim() + ' to confirm. Nothing is booked until we do, and nothing is paid on this page.') + '</p></div>';
+        $('#sheet-b').scrollTop = 0; $('#sheet-f').innerHTML = '<button type="button" class="btn primary block" id="send-close">Done</button>';
+        $('#send-close').addEventListener('click', closeSheet);
+      }).catch(e => {
+        dr.disabled = false; dr.lastChild.nodeValue = 'Try again';
+        const er = $('#r-err'); er.textContent = HIRE.errorText(e); er.hidden = false;
+        const d = $('#sheet-f details'); if (d) d.open = true;
+      });
+    });
+    if (wa) wa.addEventListener('click', ev => { if (!validate()) { ev.preventDefault(); return; } const t = message(); wa.href = 'https://wa.me/' + B().whatsapp + '?text=' + encodeURIComponent(t); show(t); });
+    if (cp) cp.addEventListener('click', () => {
+      if (!validate()) return; const t = message(); show(t); $('#r-done h3').textContent = 'Copied. Now paste it to us';
+      $('#r-done p').textContent = 'Paste it into a message to ' + [B().snapchat ? 'our Snapchat (' + B().snapchat + ')' : '', B().whatsapp ? 'WhatsApp' : '', B().phone ? 'or text ' + B().phone : ''].filter(Boolean).join(', ') + '. We\'ll reply to confirm.';
+      const sel = () => { const r = document.createRange(); r.selectNodeContents($('#r-msg')); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).catch(sel); else sel();
+    });
+  }
+  function openWait(id){
+    const c = id === 'any' ? null : car(id); const {s, e} = range(); const want = c ? c.make + ' ' + c.model : ST.cat ? 'any ' + ST.cat : 'any car';
+    const body = '<p>We\'ll message you if ' + (c ? 'the ' + esc(want) : esc(want)) + ' frees up for <b>' + esc(fmtDT(s)) + '</b> to <b>' + esc(fmtDT(e)) + '</b>.</p>' +
+      (c ? '<label class="check"><input type="checkbox" id="w-any" checked> <span>Or any ' + esc(c.category || 'similar car') + '</span></label>' : '') +
+      '<label class="fld"><span>Your name</span><input id="r-name" autocomplete="name"></label><label class="fld"><span>Mobile</span><input id="r-phone" type="tel" autocomplete="tel" inputmode="tel"></label>' +
+      '<p class="err" id="r-err" hidden></p><div class="done" id="r-done" hidden><h3>Nearly there</h3><p>Send the message to go on the waiting list.</p><pre id="r-msg"></pre></div><input type="checkbox" id="r-dobx" hidden><input type="date" id="r-dob" hidden><div id="r-delwrap" hidden></div>';
+    openSheet('Tell me when it\'s free', body, sendButtons('it'));
+    $('#sheet-b').oninput = ev => clearErr(ev.target);
+    const validate = () => { const name = $('#r-name').value.trim(), phone = $('#r-phone').value.trim(); const ok = name && phone.replace(/\D/g, '').length >= 10; $('#r-name').setAttribute('aria-invalid', !name); $('#r-phone').setAttribute('aria-invalid', phone.replace(/\D/g, '').length < 10); if (!ok) $('#sheet-b [aria-invalid=true]').focus(); $('#r-err').textContent = ok ? '' : 'Please add your name and mobile.'; $('#r-err').hidden = !!ok; return !!ok; };
+    const message = () => { const any = !c || ($('#w-any') && $('#w-any').checked); const key = c && !any ? c.id : 'cat:' + String((c ? c.category : ST.cat) || 'any').replace(/\s+/g, '_');
+      return ['WAITING LIST', 'Wanted: ' + (c ? want + (any ? ', or any ' + (c.category || 'similar car') : '') : want), 'Collect: ' + fmtDT(s), 'Return: ' + fmtDT(e), 'Name: ' + $('#r-name').value.trim(), 'Mobile: ' + $('#r-phone').value.trim(), 'Ref: wait ' + key + ' ' + isoDT(new Date(s)) + ' ' + isoDT(new Date(e))].join('\n'); };
+    wireSend(validate, message, 'wait');
+  }
+
+  /* ---------- the business around it ---------- */
+  function chrome(){
+    const b = B(); const name = b.name || 'Car hire';
+    $('#biz').firstChild.nodeValue = name; document.title = 'Book a car · ' + name;
+    $('#area').textContent = [b.area, b.hours].filter(Boolean).join(' · ');
+    if (b.intro) $('#intro').textContent = b.intro + '. Pick your dates and every car shows its price. Send a request and we\'ll message you to confirm.';
+    $('#contact').innerHTML = (b.whatsapp ? '<a class="pillbtn" href="https://wa.me/' + esc(b.whatsapp) + '" target="_blank" rel="noopener">' + icon('wa') + 'WhatsApp</a>' : '') + (b.phone ? '<a class="pillbtn" href="tel:' + esc(b.phone.replace(/\s/g, '')) + '">' + icon('phone') + esc(b.phone) + '</a>' : '') + (b.snapchat ? '<a class="pillbtn" href="https://www.snapchat.com/add/' + esc(encodeURIComponent(b.snapchat)) + '" target="_blank" rel="noopener">' + icon('snap') + 'Snapchat</a>' : '');
+    const R0 = R(); const deps = DATA && DATA.cars.length ? Math.min(...DATA.cars.map(c => num(c.deposit))) : 0; const ages = DATA && DATA.cars.length ? Math.min(...DATA.cars.map(c => num(c.minAge) || 21)) : 21;
+    $('#facts').innerHTML = [ages ? 'Drivers ' + ages + '+' : '', deps ? 'Deposits from ' + money(deps) : '', b.pickup ? 'Collect from ' + b.pickup : '', (R0.extras || []).some(x => /deliver/i.test(x.label)) ? 'Delivery available' : ''].filter(Boolean).map(f => '<span class="fact">' + esc(f) + '</span>').join('');
+    $('#need').innerHTML = ['A full UK driving licence', 'A DVLA check code from gov.uk/view-driving-licence (it lasts 21 days)', 'Photo ID and proof of address from the last 3 months', 'The deposit, paid on collection and refunded after the hire', 'Fines, tolls and charges during the hire are yours to pay' + (num(R0.fineAdminFee) ? ', plus a ' + money(R0.fineAdminFee) + ' admin fee if they come to us' : '')].map(t => '<li>' + esc(t) + '</li>').join('');
+    const up = DATA && DATA.updated ? new Date(DATA.updated) : null;
+    $('#foot').innerHTML = '<p><b>' + esc(name) + '</b>' + (b.area ? ' · ' + esc(b.area) : '') + (b.phone ? ' · ' + esc(b.phone) : '') + '</p>' +
+      [b.instagram ? '<a href="https://www.instagram.com/' + esc(encodeURIComponent(b.instagram)) + '" target="_blank" rel="noopener">Instagram</a>' : '', b.tiktok ? '<a href="https://www.tiktok.com/@' + esc(encodeURIComponent(b.tiktok)) + '" target="_blank" rel="noopener">TikTok</a>' : ''].filter(Boolean).join(' · ') +
+      '<p>Availability comes from our live bookings' + (up ? ' (last change ' + esc(fmtDT(up.getTime())) + ')' : '') + '. Every booking is confirmed by message. Nothing is paid on this page. Your details are only used to arrange your hire.</p>';
+    const top = [];
+    if (DATA && !DATA.on) top.push('<div class="notice y">Preview: this page isn\'t taking requests yet.</div>');
+    if (DATA && DATA.demo) top.push('<div class="notice info">These are example cars while the page is being set up.</div>');
+    $('#notes').insertAdjacentHTML('afterbegin', top.join(''));
+  }
+  HIRE.page().then(res => {
+    if (!res) { $('#rtitle').textContent = 'We couldn\'t find this booking page'; $('#rsub').textContent = 'Check the link you were sent.'; document.title = 'Page not found'; return; }
+    const d = res.page;
+    if (!d || !Array.isArray(d.cars)) { $('#rtitle').textContent = res.name + ' is setting up this page'; $('#rsub').textContent = 'Message them with your dates for now.'; $('#biz').firstChild.nodeValue = res.name; return; }
+    if (d.business && !d.business.name) d.business.name = res.name;
+    DATA = d; render(); chrome();
+  }).catch(() => {
+    $('#rtitle').textContent = 'The cars couldn\'t load just now'; $('#rsub').textContent = 'Refresh the page in a minute, or message us with your dates.';
+  });
+}
+</script>
+</body>
+</html>

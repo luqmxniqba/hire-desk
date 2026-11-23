@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your hire details</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#15171a">
+<meta name="robots" content="noindex">
+<script src="/config.js"></script>
+<script src="/shared/public.js"></script>
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#101113);--ink:light-dark(#141518,#f0f0ee);--mute:light-dark(#585c63,#a8acb3);--line:light-dark(#e0e1e3,#2d2f34);--line2:light-dark(#c9cbcf,#3d4046);--panel:light-dark(#f4f4f1,#18191c);--field:light-dark(#ffffff,#15161a);--y:#ffd400;--y2:#f2c900;--blue:light-dark(#0b4fb3,#7aafff);--red:light-dark(#c4221a,#ff7466);--redbg:light-dark(#fdecea,#3a1815);--green:light-dark(#11713a,#6fd39a);--head:'Barlow Condensed','Arial Narrow',system-ui,sans-serif}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 Barlow,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+.top{background:#15171a;color:#fff;padding:18px max(18px,env(safe-area-inset-left)) 22px}
+.top .in{max-width:620px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.mark{width:34px;height:34px;flex:none}
+.biz{font:700 24px/1.05 var(--head);letter-spacing:.01em}
+.biz small{display:block;font:500 15px/1.3 Barlow,sans-serif;color:#b9bcc2;margin-top:3px}
+main{max-width:620px;margin:0 auto;padding:22px max(18px,env(safe-area-inset-left)) 60px}
+h1{font:700 32px/1.05 var(--head);margin:0 0 8px;text-wrap:balance}
+.lede{color:var(--mute);margin:0 0 20px}
+.ref{display:inline-flex;align-items:stretch;background:var(--y);color:#111;border:1.5px solid #111;border-radius:4px;font:700 18px/1 var(--head);letter-spacing:.06em;overflow:hidden;vertical-align:middle;margin-left:4px}
+.ref i{display:flex;align-items:center;background:#1f43a8;color:#fff;font:600 10px/1 Barlow,sans-serif;font-style:normal;padding:0 4px}
+.ref b{padding:5px 8px 4px}
+fieldset{border:0;padding:0;margin:0 0 26px;display:grid;gap:16px}
+legend{font:700 22px/1.2 var(--head);padding:0;margin-bottom:14px}
+label.f{display:grid;gap:6px}
+label.f>span{font-size:15px;font-weight:600}
+label.f>small,.hint{font-size:14px;color:var(--mute);line-height:1.45}
+.req::after{content:' *';color:var(--red)}
+input,textarea,select{font:inherit;color:inherit;width:100%;min-height:50px;padding:11px 13px;border-radius:9px;border:1.5px solid var(--line2);background:var(--field);font-size:17px}
+textarea{min-height:90px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 25%,transparent)}
+input[aria-invalid=true]{border-color:var(--red)}
+input:disabled,select:disabled,textarea:disabled{opacity:.6}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:16px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.box p{margin:0}
+.box p+p{margin-top:8px}
+a{color:var(--blue);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;padding:0 18px;border-radius:10px;border:1.5px solid var(--line2);background:var(--bg);color:var(--ink);font:700 18px/1.2 Barlow,sans-serif;text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--y);border-color:var(--y);color:#111}
+.btn:disabled{opacity:.6;cursor:default}
+.btn:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.acts{display:grid;gap:10px;margin-top:8px}
+.err{background:var(--redbg);color:var(--red);border-radius:9px;padding:11px 13px;font-weight:600;font-size:15px}
+.done{border:2px solid var(--green);border-radius:12px;padding:16px;margin-top:16px}
+.done h2{font:700 24px/1.1 var(--head);margin:0 0 6px;color:var(--green)}
+pre{white-space:pre-wrap;font:15px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--panel);border-radius:9px;padding:12px;margin:12px 0 0;overflow-wrap:anywhere}
+.foot{margin-top:30px;font-size:14px;color:var(--mute)}
+details{margin-top:4px}
+summary{cursor:pointer;font-weight:600;color:var(--blue)}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 3h14a3 3 0 0 1 3 3v17.5L16 30 6 23.5V6a3 3 0 0 1 3-3z" fill="#ffd400"/><circle cx="16" cy="9" r="2.6" fill="#15171a"/><path d="M10 17h12M10 21h8" stroke="#15171a" stroke-width="2.2" stroke-linecap="round"/></svg>
+  <div class="biz" id="biz">Car hire<small>Your details before pickup</small></div>
+</div></header>
+<main>
+  <h1 id="title">Your hire details</h1>
+  <p class="lede" id="lede">Fill this in before you collect. It goes straight to us and saves time at pickup.</p>
+  <form id="f" novalidate autocomplete="on">
+    <fieldset><legend>About you</legend>
+      <label class="f"><span class="req">Full name, as on your licence</span><input id="name" name="name" autocomplete="name" required></label>
+      <div class="two">
+        <label class="f"><span class="req">Date of birth</span><input id="dob" name="dob" type="date" autocomplete="bday" required></label>
+        <label class="f"><span class="req">Mobile number</span><input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
+      </div>
+      <label class="f"><span>Email</span><input id="email" name="email" type="email" autocomplete="email" inputmode="email"></label>
+      <label class="f"><span class="req">Home address</span><input id="address" name="address" autocomplete="street-address" required><small>House number, street and town</small></label>
+      <label class="f"><span class="req">Postcode</span><input id="postcode" name="postcode" autocomplete="postal-code" autocapitalize="characters" required style="text-transform:uppercase;max-width:220px"></label>
+    </fieldset>
+    <fieldset><legend>Your licence</legend>
+      <label class="f"><span class="req">Driving licence number</span><input id="lic" name="lic" autocapitalize="characters" spellcheck="false" required style="text-transform:uppercase"><small>16 characters, in section 5 of your photocard</small></label>
+      <label class="f"><span>Photocard expiry date</span><input id="licexp" name="licexp" type="date"><small>Section 4b on the card</small></label>
+      <div class="box">
+        <p><b>Get a DVLA check code</b>. It lets us check your licence for points. It's free and takes a minute.</p>
+        <p>Go to <a href="https://www.gov.uk/view-driving-licence" target="_blank" rel="noopener">gov.uk/view-driving-licence</a>, sign in, and choose to share your licence. You'll need your licence number, National Insurance number and postcode. The code lasts 21 days.</p>
+      </div>
+      <label class="f"><span>DVLA check code</span><input id="code" name="code" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="e.g. Ab12Cd34"><small>Copy it exactly, it's case sensitive. You can send it later if you haven't got it yet.</small></label>
+    </fieldset>
+    <fieldset><legend>Your pickup</legend>
+      <label class="f"><span>Roughly what time you'll collect</span><input id="arrive" name="arrive" type="time"></label>
+      <details><summary>Adding another driver?</summary>
+        <div style="display:grid;gap:16px;margin-top:14px">
+          <label class="f"><span>Their full name</span><input id="xname" name="xname"></label>
+          <label class="f"><span>Their licence number</span><input id="xlic" name="xlic" autocapitalize="characters" style="text-transform:uppercase"></label>
+        </div>
+      </details>
+      <label class="f"><span>How did you hear about us?</span><select id="heard" name="heard"><option value="">Choose…</option><option>Snapchat</option><option>TikTok</option><option>Instagram</option><option>WhatsApp</option><option>A friend</option><option>Hired before</option><option>Google</option><option>Other</option></select></label>
+      <label class="f"><span>Anything we should know?</span><textarea id="notes" name="notes" rows="3"></textarea></label>
+    </fieldset>
+    <div id="errs" class="err" hidden role="alert"></div>
+    <div class="acts">
+      <button type="button" class="btn primary" id="send" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-5 16-3.5-6.5z"/><path d="m11.5 13.5 3-3"/></svg><span id="sendlabel">Send my details</span></button>
+      <a class="btn" id="wa" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-5 16-3.5-6.5z"/><path d="m11.5 13.5 3-3"/></svg><span id="walabel">Send on WhatsApp</span></a>
+      <button type="button" class="btn" id="copy"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9.5a1 1 0 0 0 1 1h3.5"/></svg>Copy it instead, for Snapchat or text</button>
+    </div>
+    <div class="done" id="done" hidden role="status"><h2>Nearly done</h2><p>Your details are in a message ready to send. If WhatsApp didn't open, copy the text below and send it to us.</p><pre id="preview"></pre></div>
+  </form>
+  <p class="foot" id="foot">Your details go only to the business named above, to arrange your hire and check your licence.</p>
+</main>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var hash = (location.hash || '').replace(/^#/, '');
+  var parts = hash.split('-').filter(Boolean);
+  var ref = parts[0] && /^[A-Za-z0-9]{4,6}$/.test(parts[0]) && !/^NEW$/i.test(parts[0]) ? parts[0].toUpperCase() : '';
+  var wa = parts.length > 1 && /^\d{10,15}$/.test(parts[1]) ? parts[1] : '';
+  var biz = parts.slice(wa ? 2 : 1).join(' ').replace(/[^A-Za-z0-9 &']/g, '').trim();
+  if (!ref && parts[0] && /^\d{10,15}$/.test(parts[0])) { wa = parts[0]; biz = parts.slice(1).join(' ').trim(); }
+  if (biz) { $('biz').firstChild.nodeValue = biz; document.title = 'Your hire details · ' + biz; }
+  if (ref) $('title').innerHTML = 'Your hire details <span class="ref"><i>REF</i><b></b></span>', $('title').querySelector('b').textContent = ref;
+
+  /* Send straight to the business when this page is on its own address (/their-page/details). */
+  var direct = HIRE.connected && !!HIRE.slug;
+  if (direct) {
+    $('send').hidden = false;
+    $('walabel').textContent = 'Or send it on WhatsApp';
+    HIRE.page().then(function (res) {
+      if (!res) { direct = false; $('send').hidden = true; return; }
+      var b = (res.page && res.page.business) || {};
+      var name = b.name || res.name;
+      if (!biz) { biz = name; $('biz').firstChild.nodeValue = name; document.title = 'Your hire details · ' + name; }
+      if (!wa && b.whatsapp) { wa = b.whatsapp; $('wa').hidden = false; refresh(); }
+      $('foot').textContent = 'Your details go only to ' + name + ', to arrange your hire and check your licence.';
+    }).catch(function () { /* the send button still works */ });
+  }
+  if (!wa) { $('wa').hidden = true; if (!direct) $('lede').textContent = 'Fill this in before you collect, then copy it and send it to us. It saves time at pickup.'; }
+
+  var uk = function(v){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : (v || ''); };
+  var val = function(id){ return ($(id).value || '').replace(/\s+/g, ' ').trim(); };
+  function message(){
+    var L = ['BOOKING DETAILS' + (ref ? ' · ref ' + ref : '')];
+    var add = function(k, v){ if (v) L.push(k + ': ' + v); };
+    add('Name', val('name')); add('Date of birth', uk(val('dob'))); add('Phone', val('phone')); add('Email', val('email'));
+    add('Address', val('address')); add('Postcode', val('postcode').toUpperCase());
+    add('Licence number', val('lic').toUpperCase().replace(/\s/g, '')); add('Licence expiry', uk(val('licexp'))); add('DVLA check code', val('code').replace(/\s/g, ''));
+    add('Collecting', val('arrive')); add('Extra driver', val('xname')); add('Extra driver licence', val('xlic').toUpperCase().replace(/\s/g, ''));
+    add('Heard about us', val('heard')); add('Notes', val('notes'));
+    return L.join('\n');
+  }
+  var REQ = [['name', 'your full name'], ['dob', 'your date of birth'], ['phone', 'your mobile number'], ['address', 'your address'], ['postcode', 'your postcode'], ['lic', 'your licence number']];
+  function check(){
+    var miss = [];
+    REQ.forEach(function(r){ var bad = !val(r[0]); $(r[0]).setAttribute('aria-invalid', bad ? 'true' : 'false'); if (bad) miss.push(r[1]); });
+    var lic = val('lic').replace(/\s/g, '');
+    if (lic && lic.length !== 16) { miss.push('the full 16 character licence number'); $('lic').setAttribute('aria-invalid', 'true'); }
+    var e = $('errs');
+    if (miss.length) { e.textContent = 'Please add ' + miss.join(', ').replace(/, ([^,]*)$/, ' and $1') + '.'; e.hidden = false; return false; }
+    e.hidden = true; return true;
+  }
+  function refresh(){ if (wa) $('wa').href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(message()); }
+  function focusFirst(){ var first = document.querySelector('[aria-invalid=true]'); if (first) first.focus(); }
+  $('f').addEventListener('input', function(){ refresh(); if (!$('errs').hidden) check(); });
+
+  $('send').addEventListener('click', function(){
+    if (!check()) { focusFirst(); return; }
+    var b = $('send'); b.disabled = true; $('sendlabel').textContent = 'Sending…';
+    HIRE.submit('details', message(), val('name'), val('phone'), ref).then(function(){
+      Array.prototype.forEach.call($('f').querySelectorAll('input,select,textarea'), function(el){ el.disabled = true; });
+      $('done').querySelector('h2').textContent = 'Sent. Thank you';
+      $('done').querySelector('p').textContent = 'We’ve got your details. See you at pickup, and bring your licence and photo ID.';
+      $('preview').hidden = true; $('done').hidden = false; b.hidden = true; $('wa').hidden = true; $('copy').hidden = true;
+      $('done').scrollIntoView({behavior: 'smooth', block: 'center'});
+    }).catch(function(e){
+      b.disabled = false; $('sendlabel').textContent = 'Try again';
+      var er = $('errs'); er.textContent = HIRE.errorText(e); er.hidden = false;
+    });
+  });
+  $('wa').addEventListener('click', function(ev){
+    if (!check()) { ev.preventDefault(); focusFirst(); return; }
+    refresh(); $('preview').textContent = message(); $('done').hidden = false;
+  });
+  $('copy').addEventListener('click', function(){
+    if (!check()) { focusFirst(); return; }
+    var t = message(); $('preview').textContent = t; $('done').hidden = false;
+    var ok = function(){ $('copy').lastChild.nodeValue = 'Copied. Paste it into the chat'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, function(){ selectPreview(); });
+    else selectPreview();
+  });
+  function selectPreview(){ var r = document.createRange(); r.selectNodeContents($('preview')); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+  refresh();
+})();
+</script>
+</body>
+</html>
