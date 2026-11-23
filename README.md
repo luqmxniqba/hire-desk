@@ -32,7 +32,7 @@ One copy of the app serves many businesses. Each business only ever sees its own
 
 1. Push this folder to a GitHub repository (or let Claude do it once GitHub is connected).
 2. On [vercel.com](https://vercel.com), choose **Add New → Project** and import the repository. Vercel reads `vercel.json`, so leave the build settings as they are.
-3. Under **Environment Variables**, add:
+3. `site/config.js` already points at your Supabase project, so this step is optional. To use a different project without editing the file, add these under **Environment Variables**:
    - `SUPABASE_URL`: your Project URL
    - `SUPABASE_KEY`: your publishable key
    - `PLATFORM_NAME` (optional): the name shown on the sign-in screen, e.g. `Hire Desk`
