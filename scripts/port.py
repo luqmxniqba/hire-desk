@@ -123,6 +123,46 @@ EXT.act['inbox-done'] = el => {
 };
 
 const ACT = {"""),
+
+    # photo of the actual car for the booking page
+    ("'</div></fieldset>' +\n    '<fieldset class=\"fset\"><legend>Prices</legend>",
+     "'</div>' + carPhotoField(c) + '</fieldset>' +\n    '<fieldset class=\"fset\"><legend>Prices</legend>"),
+    ("  if (f.ulez === 'yes') c.ulez = true;",
+     "  const oldPhoto = ex && ex.photoPath;\n"
+     "  if (form._photo) { if (form._photo.url) { c.photoUrl = form._photo.url; c.photoPath = form._photo.path; } else { delete c.photoUrl; delete c.photoPath; } }\n"
+     "  if (f.ulez === 'yes') c.ulez = true;"),
+    ("  const sh = topSheet(); await put('cars', c); closeSheet(sh); toast(ex ? 'Car saved' : plate + ' added to the fleet');",
+     "  const sh = topSheet(); const saved = await put('cars', c); closeSheet(sh); toast(ex ? 'Car saved' : plate + ' added to the fleet');\n"
+     "  if (saved && oldPhoto && oldPhoto !== c.photoPath && window.PLATFORM && window.PLATFORM.carPhotos) window.PLATFORM.carPhotos.remove(oldPhoto);"),
+    ("ulez: c.ulez === false ? false : c.ulez === true ? true : null}))",
+     "ulez: c.ulez === false ? false : c.ulez === true ? true : null, photo: /^https?:\\/\\//.test(c.photoUrl || '') ? c.photoUrl : ''}))"),
+    (".row.inb{box-shadow:inset 4px 0 0 var(--y)}",
+     ".row.inb{box-shadow:inset 4px 0 0 var(--y)}\n.cpic{width:100%;max-width:380px;aspect-ratio:16/10;border-radius:10px;overflow:hidden;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;text-align:center;margin:6px 0 10px}\n.cpic img{width:100%;height:100%;object-fit:cover;display:block}\n.cpic .small{padding:0 16px}"),
+    ("const ACT = {", r"""/* ---------- photo of the actual car, for the booking page ---------- */
+function carPhotoField(c){
+  if (!(window.PLATFORM && window.PLATFORM.carPhotos && S.mode === 'db')) return '';
+  return '<div class="field" id="cr-photo">' + carPhotoInner(c.photoUrl || '') + '</div>';
+}
+function carPhotoInner(url){
+  return '<span>Photo for your booking page</span><div class="cpic">' + (url ? '<img src="' + esc(url) + '" alt="">' : '<span class="mute small">No photo yet. Customers see a drawing of the car in its colour.</span>') + '</div>' +
+    '<div class="btns"><label class="btn sm" for="cr-pic">' + icon('camera') + (url ? 'Change photo' : 'Add a photo') + '</label>' + filePick('cr-pic', 'data-pick="carpic"', 'image/*') +
+    (url ? '<button type="button" class="btn sm quiet" data-act="carpic-del">' + icon('trash') + 'Remove</button>' : '') + '</div>' +
+    '<small class="hint">Shoot it side-on or from the front corner, in daylight, with the plate out of shot or blurred. The booking page is public, and cloned plates are a real problem.</small>';
+}
+EXT.change.push(t => {
+  if (!(t.dataset && t.dataset.pick === 'carpic')) return;
+  const file = t.files && t.files[0]; const form = t.closest('form'); t.value = '';
+  if (!file || !form) return true;
+  const box = $('#cr-photo', form); const pic = box.querySelector('.cpic'); pic.innerHTML = '<span class="mute small">Uploading…</span>';
+  (async () => {
+    try { const blob = await shrinkImage(file, 1600, 0.82); const r = await window.PLATFORM.carPhotos.upload(blob); form._photo = r; box.innerHTML = carPhotoInner(r.url); }
+    catch (e) { box.innerHTML = carPhotoInner(form._photo ? form._photo.url : ((S.cars.get(form.dataset.id) || {}).photoUrl || '')); toast(assetError(e)); }
+  })();
+  return true;
+});
+EXT.act['carpic-del'] = el => { const form = el.closest('form'); form._photo = {url: '', path: ''}; $('#cr-photo', form).innerHTML = carPhotoInner(''); };
+
+const ACT = {"""),
 ]
 
 # ---------------------------------------------------------------- booking page
@@ -193,6 +233,12 @@ BOOK = [
      "'<p>Availability comes from our live bookings' + (up ? ' (last change ' + esc(fmtDT(up.getTime())) + ')' : '') + '. Every booking is confirmed by message. Nothing is paid on this page. Your details are only used to arrange your hire.</p>'"),
     ("  const icon = n => '<svg class=\"ic\"", "  IC.send = '<path d=\"M4 12 20 4l-5 16-3.5-6.5z\"/><path d=\"m11.5 13.5 3-3\"/>';\n  const icon = n => '<svg class=\"ic\""),
     ("</style>", ".alt{margin-top:10px}.alt summary{cursor:pointer;font-weight:600;color:var(--blue,#0b4fb3);padding:6px 0}.alt .pair{margin-top:8px}\n</style>"),
+    # a real photo of the car when the business has added one, the drawing when not
+    ("<div class=\"pic\">' + carSvg(c) + '</div><div class=\"cbody\">",
+     "' + (/^https?:\\/\\//.test(c.photo || '') ? '<div class=\"pic ph\"><img class=\"carph\" data-id=\"' + esc(c.id) + '\" src=\"' + esc(c.photo) + '\" alt=\"' + esc(c.make + ' ' + c.model) + '\" loading=\"lazy\"></div>' : '<div class=\"pic\">' + carSvg(c) + '</div>') + '<div class=\"cbody\">"),
+    ("No cars match. Try all types.</div>';",
+     "No cars match. Try all types.</div>';\n    $$('#grid img.carph').forEach(i => i.addEventListener('error', () => { const c = car(i.dataset.id); const p = i.parentNode; p.classList.remove('ph'); p.innerHTML = c ? carSvg(c) : ''; }, {once: true}));"),
+    (".alt{margin-top:10px}", ".pic.ph{padding:0;aspect-ratio:16/10;overflow:hidden}.pic.ph img{width:100%;height:100%;object-fit:cover;display:block}\n.alt{margin-top:10px}"),
 ]
 
 if __name__ == '__main__':

@@ -426,3 +426,30 @@ create policy hire_assets_update on storage.objects for update to authenticated
 drop policy if exists hire_assets_delete on storage.objects;
 create policy hire_assets_delete on storage.objects for delete to authenticated
   using (bucket_id = 'assets' and app.can_write(app.path_org(name)));
+
+-- ---------------------------------------------------------------------
+-- 7. Car photos for the public booking page
+--    Anyone can view them (the booking page is public), only the
+--    business's team can add, change or remove them.
+-- ---------------------------------------------------------------------
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('car-photos', 'car-photos', true, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+
+drop policy if exists hire_carphotos_read on storage.objects;
+create policy hire_carphotos_read on storage.objects for select to authenticated
+  using (bucket_id = 'car-photos' and app.can_read(app.path_org(name)));
+
+drop policy if exists hire_carphotos_insert on storage.objects;
+create policy hire_carphotos_insert on storage.objects for insert to authenticated
+  with check (bucket_id = 'car-photos' and app.can_write(app.path_org(name)));
+
+drop policy if exists hire_carphotos_update on storage.objects;
+create policy hire_carphotos_update on storage.objects for update to authenticated
+  using (bucket_id = 'car-photos' and app.can_write(app.path_org(name)))
+  with check (bucket_id = 'car-photos' and app.can_write(app.path_org(name)));
+
+drop policy if exists hire_carphotos_delete on storage.objects;
+create policy hire_carphotos_delete on storage.objects for delete to authenticated
+  using (bucket_id = 'car-photos' and app.can_write(app.path_org(name)));

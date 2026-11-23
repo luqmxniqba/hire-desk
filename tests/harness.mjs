@@ -204,8 +204,13 @@ export async function startHarness({port = 8090, db = 'hiree2e', confirmEmail = 
     try {
       let m;
       if (req.method === 'GET' && (m = /^\/object\/sign\/assets\/(.+)$/.exec(p))) {
-        if (url.searchParams.get('token') !== signTok(m[1]) || !files.has(m[1])) return send(res, 400, {statusCode: '404', error: 'not_found', message: 'Object not found'});
-        const f = files.get(m[1]); return send(res, 200, f.bytes, {'Content-Type': f.type});
+        if (url.searchParams.get('token') !== signTok(m[1]) || !files.has('assets/' + m[1])) return send(res, 400, {statusCode: '404', error: 'not_found', message: 'Object not found'});
+        const f = files.get('assets/' + m[1]); return send(res, 200, f.bytes, {'Content-Type': f.type});
+      }
+      if (req.method === 'GET' && (m = /^\/object\/public\/([a-z-]+)\/(.+)$/.exec(p))) {
+        const pub = (await pool.query('select public from storage.buckets where id = $1', [m[1]])).rows[0];
+        if (!pub || !pub.public || !files.has(m[1] + '/' + m[2])) return send(res, 400, {statusCode: '404', error: 'not_found', message: 'Object not found'});
+        const f = files.get(m[1] + '/' + m[2]); return send(res, 200, f.bytes, {'Content-Type': f.type});
       }
       if (req.method === 'POST' && p === '/object/sign/assets') {
         const body = JSON.parse((await readBody(req)).toString());
@@ -221,20 +226,22 @@ export async function startHarness({port = 8090, db = 'hiree2e', confirmEmail = 
       if (req.method === 'POST' && (m = /^\/object\/list\/assets$/.exec(p))) {
         const body = JSON.parse((await readBody(req)).toString());
         const out = await asRole(claims, c => c.query(`select id, name, created_at from storage.objects where bucket_id = 'assets' and name like $1 order by name limit $2 offset $3`, [body.prefix + '/%', body.limit || 100, body.offset || 0]));
-        return send(res, 200, out.rows.map(r => ({name: r.name.split('/').pop(), id: r.id, created_at: r.created_at, metadata: {size: (files.get(r.name) || {bytes: []}).bytes.length}})));
+        return send(res, 200, out.rows.map(r => ({name: r.name.split('/').pop(), id: r.id, created_at: r.created_at, metadata: {size: (files.get('assets/' + r.name) || {bytes: []}).bytes.length}})));
       }
-      if ((req.method === 'POST' || req.method === 'PUT') && (m = /^\/object\/assets\/(.+)$/.exec(p))) {
+      if ((req.method === 'POST' || req.method === 'PUT') && (m = /^\/object\/(assets|car-photos)\/(.+)$/.exec(p))) {
         const f = multipartFile(await readBody(req), req.headers['content-type']);
-        if (f.bytes.length > 20971520) return send(res, 400, {statusCode: '413', error: 'Payload too large', message: 'The object exceeded the maximum allowed size'});
-        const r = await asRole(claims, c => c.query(`insert into storage.objects (bucket_id, name, owner, metadata) values ('assets', $1, $2, $3) returning id`, [m[1], claims.sub || null, {mimetype: f.type, size: f.bytes.length}]));
-        files.set(m[1], f);
-        return send(res, 200, {Key: 'assets/' + m[1], Id: r.rows[0].id});
+        const lim = (await pool.query('select file_size_limit, allowed_mime_types from storage.buckets where id = $1', [m[1]])).rows[0];
+        if (f.bytes.length > +lim.file_size_limit) return send(res, 400, {statusCode: '413', error: 'Payload too large', message: 'The object exceeded the maximum allowed size'});
+        if (lim.allowed_mime_types && !lim.allowed_mime_types.includes(f.type)) return send(res, 400, {statusCode: '415', error: 'invalid_mime_type', message: 'mime type ' + f.type + ' is not supported'});
+        const r = await asRole(claims, c => c.query(`insert into storage.objects (bucket_id, name, owner, metadata) values ($1, $2, $3, $4) returning id`, [m[1], m[2], claims.sub || null, {mimetype: f.type, size: f.bytes.length}]));
+        files.set(m[1] + '/' + m[2], f);
+        return send(res, 200, {Key: m[1] + '/' + m[2], Id: r.rows[0].id});
       }
-      if (req.method === 'DELETE' && p === '/object/assets') {
+      if (req.method === 'DELETE' && (m = /^\/object\/(assets|car-photos)$/.exec(p))) {
         const body = JSON.parse((await readBody(req)).toString());
-        const out = await asRole(claims, c => c.query(`delete from storage.objects where bucket_id = 'assets' and name = any($1) returning name`, [body.prefixes]));
-        out.rows.forEach(r => files.delete(r.name));
-        return send(res, 200, out.rows.map(r => ({name: r.name, bucket_id: 'assets'})));
+        const out = await asRole(claims, c => c.query(`delete from storage.objects where bucket_id = $1 and name = any($2) returning name`, [m[1], body.prefixes]));
+        out.rows.forEach(r => files.delete(m[1] + '/' + r.name));
+        return send(res, 200, out.rows.map(r => ({name: r.name, bucket_id: m[1]})));
       }
       unhandled.push(req.method + ' ' + url.pathname); return send(res, 404, {message: 'not in mock'});
     } catch (e) { return e.code ? sErr(e) : send(res, 400, {message: e.message}); }
@@ -276,7 +283,7 @@ export async function startHarness({port = 8090, db = 'hiree2e', confirmEmail = 
   });
   server.on('upgrade', (req, socket) => socket.destroy());
   await new Promise(r => server.listen(port, r));
-  return {origin, pool, unhandled, links, close: async () => { await new Promise(r => server.close(r)); await pool.end(); }};
+  return {origin, pool, unhandled, links, files, close: async () => { await new Promise(r => server.close(r)); await pool.end(); }};
 }
 
 if (process.argv[1] === new URL(import.meta.url).pathname) {

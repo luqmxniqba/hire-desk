@@ -147,6 +147,13 @@ await fails(eve, q => q(`insert into storage.objects (bucket_id, name) values ('
 await fails(alice, q => q(`insert into storage.objects (bucket_id, name) values ('assets', 'not-a-uuid/p.jpg')`), /row-level security/);
 await fails(alice, q => q(`insert into storage.objects (bucket_id, name) values ('other', $1)`, [ORG + '/p.jpg']), /row-level security|foreign key/);
 eq((await as(eve, q => q(`delete from storage.objects`))).rowCount, 0, 'outsider cannot delete photos');
+await as(bob, q => q(`insert into storage.objects (bucket_id, name) values ('car-photos', $1)`, [ORG + '/car1.jpg']));
+ok(true, 'staff can add a car photo for the booking page');
+await fails(eve, q => q(`insert into storage.objects (bucket_id, name) values ('car-photos', $1)`, [ORG + '/fake.jpg']), /row-level security/);
+await fails(alice, q => q(`insert into storage.objects (bucket_id, name) values ('car-photos', $1)`, [ORG2 + '/x.jpg']), /row-level security/);
+eq((await as(eve, q => q(`delete from storage.objects where bucket_id = 'car-photos'`))).rowCount, 0, 'outsider cannot remove car photos');
+eq((await c.query(`select public from storage.buckets where id = 'car-photos'`)).rows[0].public, true, 'car photos bucket is public, the private one is not');
+eq((await c.query(`select public from storage.buckets where id = 'assets'`)).rows[0].public, false, 'documents and damage photos stay private');
 
 // --- removed from the team means locked out
 eq((await rpc(alice, 'remove_member', [ORG, bob.id])).ok, true, 'owner removes staff');

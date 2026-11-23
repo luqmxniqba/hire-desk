@@ -376,6 +376,20 @@ function openBusiness(b) {
   P.org = b;
   P.bookingUrl = function () { return location.origin + '/' + b.slug; };
   P.formUrl = function () { return location.origin + '/' + b.slug + '/details'; };
+  // Photos of the business's own cars for its public booking page.
+  P.carPhotos = {
+    upload: async function (blob) {
+      var id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)).replace(/-/g, '');
+      var path = b.id + '/' + id + '.jpg';
+      var r = await sb.storage.from('car-photos').upload(path, blob, {contentType: blob.type || 'image/jpeg', upsert: false, cacheControl: '31536000'});
+      if (r.error) throw storageErr(r.error);
+      return {path: path, url: sb.storage.from('car-photos').getPublicUrl(path).data.publicUrl};
+    },
+    remove: function (path) {
+      if (!path || path.indexOf(b.id + '/') !== 0) return Promise.resolve();
+      return sb.storage.from('car-photos').remove([path]).then(function () {}, function () {});
+    }
+  };
   hideGate();
   mountAccount();
   resolveReady(makeClaude(b));

@@ -58,8 +58,9 @@ While confirmation is off, someone who knows a staff member's email could sign u
 1. Open `https://your-app.vercel.app/staff`, create your account, and open **Setting up a new business**. Enter the business name, the booking page address (e.g. `abc-car-hire`), and your setup code.
 2. **Moving over from the Claude tracker:** open the old tracker, go to **Setup → Download a full backup**. In the new tracker, go to **Setup → Restore a backup**. Photos stored inside Claude don't come across; everything else does. After that, stop using the Claude version so the bookings don't split between two places.
 3. In **Setup**, fill in the business name and phone, choose which cars show, and press **Switch it on** for the booking page. Do the same for the booking form.
-4. Add staff from the round account button, top right: **Add someone** with their email. They sign up at `/staff` with that email and they're in.
-5. On a phone, open `/staff` and use **Add to Home Screen**. It opens like an app.
+4. Add a photo of each car: **Fleet → the car → Edit → Add a photo**. It replaces the drawing on the booking page. Shoot it side-on or from the front corner in daylight, with the plate out of shot or blurred. Photos are shrunk and the phone's location data is stripped before upload.
+5. Add staff from the round account button, top right: **Add someone** with their email. They sign up at `/staff` with that email and they're in.
+6. On a phone, open `/staff` and use **Add to Home Screen**. It opens like an app.
 
 ---
 
@@ -99,7 +100,7 @@ tests/                   database and browser tests (see tests/README.md)
 - **Storage:** each record (car, booking, customer and so on) is one row in `records`, tagged with its business. Row-level security means a signed-in person can only read or change rows for a business whose team they're on.
 - **Live updates:** open trackers hear about changes through Supabase Realtime, and also check every 30 seconds as a fallback.
 - **Customer pages** never sign in. They can do exactly two things: read the availability the tracker publishes (no names, numbers or bookings), and send a request or form into that business's inbox. Both are limited to stop floods.
-- **Photos** go to a private storage bucket, in a folder per business, and are shown through links that expire.
+- **Photos** of damage, fines and documents go to a private storage bucket, in a folder per business, and are shown through links that expire. **Car photos for the booking page** go to a separate public bucket. Anyone can view them, but only that business's team can add or remove them.
 
 ## Not built yet
 

@@ -133,6 +133,7 @@ pre{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;bac
 .err{color:var(--red);font-weight:600;font-size:15px}
 .empty{padding:22px;border:1.5px dashed var(--line2);border-radius:14px;text-align:center;color:var(--mute)}
 @media(prefers-reduced-motion:no-preference){.car{transition:transform .2s ease}.car:hover{transform:rotate(-.6deg)}}
+.pic.ph{padding:0;aspect-ratio:16/10;overflow:hidden}.pic.ph img{width:100%;height:100%;object-fit:cover;display:block}
 .alt{margin-top:10px}.alt summary{cursor:pointer;font-weight:600;color:var(--blue,#0b4fb3);padding:6px 0}.alt .pair{margin-top:8px}
 </style>
 </head>
@@ -329,10 +330,11 @@ pre{white-space:pre-wrap;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;bac
       else if (r.young) { state = '<div class="state no">' + icon('no') + '<span>For drivers aged ' + num(c.minAge) + ' and over</span></div>'; acts = ''; }
       else if (!r.st.ok) { state = '<div class="state no">' + icon('no') + '<span>Booked then' + (r.st.next ? '. Free from ' + esc(fmtDT(r.st.next)) : '') + '</span></div>' + (r.st.next ? '<button type="button" class="linkbtn" data-move="' + r.st.next + '">Move my dates to then</button>' : ''); acts = '<button type="button" class="btn block" data-wait="' + esc(c.id) + '"' + (on ? '' : ' disabled') + '>' + icon('clock') + 'Tell me when it\'s free</button>'; }
       else { state = r.st.soft ? '<div class="state soft">' + icon('clock') + '<span>Free, but someone has asked about it. Be quick.</span></div>' : '<div class="state ok">' + icon('ok') + '<span>Free for your dates</span></div>'; acts = '<button type="button" class="btn primary block" data-req="' + esc(c.id) + '"' + (on ? '' : ' disabled') + '>' + (on ? 'Request this car' : 'Requests open soon') + '</button>'; }
-      return '<article class="car' + (r.ok || err ? '' : ' no') + '"><div class="pic">' + carSvg(c) + '</div><div class="cbody"><h3 class="cname">' + esc(c.make + ' ' + c.model) + '</h3><p class="specs">' + esc([c.year, c.transmission, c.fuel === 'Electric' ? 'Electric' : c.fuel, c.seats ? c.seats + ' seats' : ''].filter(Boolean).join(' · ')) + '</p>' +
+      return '<article class="car' + (r.ok || err ? '' : ' no') + '">' + (/^https?:\/\//.test(c.photo || '') ? '<div class="pic ph"><img class="carph" data-id="' + esc(c.id) + '" src="' + esc(c.photo) + '" alt="' + esc(c.make + ' ' + c.model) + '" loading="lazy"></div>' : '<div class="pic">' + carSvg(c) + '</div>') + '<div class="cbody"><h3 class="cname">' + esc(c.make + ' ' + c.model) + '</h3><p class="specs">' + esc([c.year, c.transmission, c.fuel === 'Electric' ? 'Electric' : c.fuel, c.seats ? c.seats + ' seats' : ''].filter(Boolean).join(' · ')) + '</p>' +
         (q ? '<div class="price"><b>' + money(q.total) + '</b><span>' + esc(q.bp.note) + (q.lines.length ? ' + young driver fee' : '') + '</span></div>' : '<div class="price"><b>' + money(c.rates.day) + '</b><span>a day</span></div>') +
         '<p class="small">' + esc(miles(c, q ? q.bp.days : 1, []) + ' · deposit ' + money(c.deposit)) + '</p>' + state + (acts ? '<div class="cacts">' + acts + '</div>' : '') + '</div></article>';
     }).join('') : '<div class="empty">No cars match. Try all types.</div>';
+    $$('#grid img.carph').forEach(i => i.addEventListener('error', () => { const c = car(i.dataset.id); const p = i.parentNode; p.classList.remove('ph'); p.innerHTML = c ? carSvg(c) : ''; }, {once: true}));
     if (!err && !free.length && rows.length && on) $('#grid').insertAdjacentHTML('afterbegin', '<div class="empty" style="grid-column:1/-1"><p>Everything\'s booked for those dates.</p><p style="margin-top:10px"><button type="button" class="btn primary" data-wait="any">Ask to be told when a car frees up</button></p></div>');
   }
   $('#cats').addEventListener('click', ev => { const b = ev.target.closest('[data-cat]'); if (b) { ST.cat = b.dataset.cat; render(); } });

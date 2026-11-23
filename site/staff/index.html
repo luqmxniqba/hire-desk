@@ -486,6 +486,9 @@ code.wrap{display:inline-block;margin-top:4px;font:500 13px/1.4 ui-monospace,Men
 .pubcars{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));column-gap:16px}
 
 .row.inb{box-shadow:inset 4px 0 0 var(--y)}
+.cpic{width:100%;max-width:380px;aspect-ratio:16/10;border-radius:10px;overflow:hidden;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;text-align:center;margin:6px 0 10px}
+.cpic img{width:100%;height:100%;object-fit:cover;display:block}
+.cpic .small{padding:0 16px}
 </style>
 </head>
 <body>
@@ -2821,7 +2824,7 @@ function shCarForm(id){
   const body = '<form id="cf2" data-form="car" data-id="' + esc(ex ? ex.id : '') + '" autocomplete="off">' +
     '<fieldset class="fset"><legend>The car</legend><div class="fgrid">' + fld('Number plate', inp('cr-plate', 'plate', c.plate, {req: true, ph: 'AB12 CDE', attrs: 'style="text-transform:uppercase"'})) + fld('Make', inp('cr-make', 'make', c.make, {req: true, ph: 'e.g. BMW'})) + fld('Model', inp('cr-model', 'model', needsDetails(c) ? '' : c.model, {ph: 'e.g. 118i M Sport'})) + '</div>' +
       '<div class="fgrid">' + fld('Year', inp('cr-year', 'year', c.year, {type: 'number', min: 1990, mode: 'numeric'})) + fld('Colour', inp('cr-col', 'colour', c.colour)) + fld('Type', sel('cr-cat', 'category', CATEGORIES, c.category)) + '</div>' +
-      '<div class="fgrid">' + fld('Gearbox', sel('cr-tr', 'transmission', ['Automatic', 'Manual'], c.transmission)) + fld('Fuel', sel('cr-fuel', 'fuel', ['Petrol', 'Diesel', 'Hybrid', 'Electric'], c.fuel)) + fld('Seats', inp('cr-seats', 'seats', c.seats, {type: 'number', min: 1, mode: 'numeric'})) + fld('Mileage now', inp('cr-miles', 'mileage', c.mileage, {type: 'number', min: 0, mode: 'numeric'})) + '</div></fieldset>' +
+      '<div class="fgrid">' + fld('Gearbox', sel('cr-tr', 'transmission', ['Automatic', 'Manual'], c.transmission)) + fld('Fuel', sel('cr-fuel', 'fuel', ['Petrol', 'Diesel', 'Hybrid', 'Electric'], c.fuel)) + fld('Seats', inp('cr-seats', 'seats', c.seats, {type: 'number', min: 1, mode: 'numeric'})) + fld('Mileage now', inp('cr-miles', 'mileage', c.mileage, {type: 'number', min: 0, mode: 'numeric'})) + '</div>' + carPhotoField(c) + '</fieldset>' +
     '<fieldset class="fset"><legend>Prices</legend><div class="fgrid">' + fld('Per day (£)', inp('cr-day', 'day', r.day, {type: 'number', min: 0, step: '0.01', mode: 'decimal', req: true})) + fld('Weekend (£)', inp('cr-wkd', 'weekend', r.weekend, {type: 'number', min: 0, step: '0.01', mode: 'decimal'}), 'Fri or Sat pickup, back by Mon 12:00') + fld('Week (£)', inp('cr-wk', 'week', r.week, {type: 'number', min: 0, step: '0.01', mode: 'decimal'})) + fld('Deposit (£)', inp('cr-dep', 'deposit', c.deposit, {type: 'number', min: 0, step: '1', mode: 'decimal'})) + '</div>' +
       '<div class="fgrid">' + fld('Miles a day', inp('cr-mpd', 'milesPerDay', c.milesPerDay, {type: 'number', min: 0, mode: 'numeric'}), '0 means unlimited') + fld('Each extra mile (£)', inp('cr-epm', 'excessPerMile', c.excessPerMile, {type: 'number', min: 0, step: '0.01', mode: 'decimal'})) + fld('Minimum driver age', inp('cr-age', 'minAge', num(c.minAge) || '', {type: 'number', min: 17, mode: 'numeric'})) + '</div></fieldset>' +
     '<fieldset class="fset"><legend>Paperwork due</legend><div class="fgrid">' + fld('MOT', inp('cr-mot', 'mot', d.mot, {type: 'date'})) + fld('Road tax', inp('cr-tax', 'tax', d.tax, {type: 'date'})) + fld('Insurance renewal', inp('cr-ins', 'insurance', d.insurance, {type: 'date'})) + fld('Next service', inp('cr-svc', 'service', d.service, {type: 'date'})) + fld('Or service at (miles)', inp('cr-svm', 'serviceMiles', d.serviceMiles, {type: 'number', min: 0, mode: 'numeric'})) + '</div></fieldset>' +
@@ -2843,9 +2846,12 @@ async function saveCar(form){
     rates: {day: num(f.day), weekend: num(f.weekend), week: num(f.week)}, deposit: num(f.deposit), milesPerDay: num(f.milesPerDay), excessPerMile: num(f.excessPerMile), minAge: num(f.minAge), mileage: num(f.mileage),
     due: {mot: f.mot, tax: f.tax, insurance: f.insurance, service: f.service, serviceMiles: num(f.serviceMiles)}, costs: {finance: num(f.finance), insurance: num(f.insuranceCost), interest: num(f.interest)}, addedOn: f.addedOn || todayISO(), notes: f.notes,
     own: f.own, valueNow: num(f.valueNow), buyPrice: num(f.buyPrice), buyDate: f.buyDate, ownerId: f.ownerId || '', ownerDeal: f.ownerId ? {type: f.dealType, pct: num(f.dealPct), fixed: num(f.dealFixed)} : null});
+  const oldPhoto = ex && ex.photoPath;
+  if (form._photo) { if (form._photo.url) { c.photoUrl = form._photo.url; c.photoPath = form._photo.path; } else { delete c.photoUrl; delete c.photoPath; } }
   if (f.ulez === 'yes') c.ulez = true; else if (f.ulez === 'no') c.ulez = false; else delete c.ulez;
   if (ex) { c.sold = !!f.sold; if (c.sold && !ex.sold) c.soldOn = todayISO(); if (!c.sold) delete c.soldOn; }
-  const sh = topSheet(); await put('cars', c); closeSheet(sh); toast(ex ? 'Car saved' : plate + ' added to the fleet');
+  const sh = topSheet(); const saved = await put('cars', c); closeSheet(sh); toast(ex ? 'Car saved' : plate + ' added to the fleet');
+  if (saved && oldPhoto && oldPhoto !== c.photoPath && window.PLATFORM && window.PLATFORM.carPhotos) window.PLATFORM.carPhotos.remove(oldPhoto);
   if (!ex) shCar(c.id);
 }
 function shOffRoad(id){
@@ -5395,7 +5401,7 @@ function publicSnapshot(){
     rules: {graceMins: num(setting('graceMins')), turnaroundHrs: num(setting('turnaroundHrs')), youngAge: num(setting('youngAge')), lateFeePerHour: num(setting('lateFeePerHour')), fuelPerEighth: num(setting('fuelPerEighth')), fineAdminFee: num(setting('fineAdminFee')), ev: setting('ev'),
       extras: (st.extras || DEF_SETTINGS.extras).map(x => ({label: x.label, amount: num(x.amount), perDay: !!x.perDay})), daysAhead: Math.max(14, num(P.daysAhead) || 120)},
     cars: cars.map(c => ({id: pubId(c), make: c.make || '', model: c.model || '', year: c.year || '', category: c.category || '', transmission: c.transmission || '', fuel: c.fuel || '', seats: num(c.seats) || '', colour: c.colour || '',
-      rates: {day: num((c.rates || {}).day), weekend: num((c.rates || {}).weekend), week: num((c.rates || {}).week)}, deposit: num(c.deposit), milesPerDay: num(c.milesPerDay), excessPerMile: num(c.excessPerMile), minAge: num(c.minAge), ulez: c.ulez === false ? false : c.ulez === true ? true : null})),
+      rates: {day: num((c.rates || {}).day), weekend: num((c.rates || {}).weekend), week: num((c.rates || {}).week)}, deposit: num(c.deposit), milesPerDay: num(c.milesPerDay), excessPerMile: num(c.excessPerMile), minAge: num(c.minAge), ulez: c.ulez === false ? false : c.ulez === true ? true : null, photo: /^https?:\/\//.test(c.photoUrl || '') ? c.photoUrl : ''})),
     busy: busy, soft: soft,
     peaks: (setting('peaks') || []).filter(p => p.to >= today && T(p.from) < horizon).map(p => ({name: p.name, from: p.from, to: p.to, minDays: num(p.minDays)})),
     promos: [...S.promos.values()].filter(p => p.active !== false && p.type !== 'none' && num(p.value) > 0 && (!p.to || p.to >= today)).map(p => ({code: String(p.code).toUpperCase(), type: p.type, value: num(p.value), from: p.from || '', to: p.to || ''}))
@@ -5748,6 +5754,30 @@ EXT.act['inbox-done'] = el => {
   const x = S.inbox.get(el.dataset.id); if (!x) return;
   del('inbox', x.id).then(ok => { if (ok) toast('Cleared', {undo: () => put('inbox', x)}); });
 };
+
+/* ---------- photo of the actual car, for the booking page ---------- */
+function carPhotoField(c){
+  if (!(window.PLATFORM && window.PLATFORM.carPhotos && S.mode === 'db')) return '';
+  return '<div class="field" id="cr-photo">' + carPhotoInner(c.photoUrl || '') + '</div>';
+}
+function carPhotoInner(url){
+  return '<span>Photo for your booking page</span><div class="cpic">' + (url ? '<img src="' + esc(url) + '" alt="">' : '<span class="mute small">No photo yet. Customers see a drawing of the car in its colour.</span>') + '</div>' +
+    '<div class="btns"><label class="btn sm" for="cr-pic">' + icon('camera') + (url ? 'Change photo' : 'Add a photo') + '</label>' + filePick('cr-pic', 'data-pick="carpic"', 'image/*') +
+    (url ? '<button type="button" class="btn sm quiet" data-act="carpic-del">' + icon('trash') + 'Remove</button>' : '') + '</div>' +
+    '<small class="hint">Shoot it side-on or from the front corner, in daylight, with the plate out of shot or blurred. The booking page is public, and cloned plates are a real problem.</small>';
+}
+EXT.change.push(t => {
+  if (!(t.dataset && t.dataset.pick === 'carpic')) return;
+  const file = t.files && t.files[0]; const form = t.closest('form'); t.value = '';
+  if (!file || !form) return true;
+  const box = $('#cr-photo', form); const pic = box.querySelector('.cpic'); pic.innerHTML = '<span class="mute small">Uploading…</span>';
+  (async () => {
+    try { const blob = await shrinkImage(file, 1600, 0.82); const r = await window.PLATFORM.carPhotos.upload(blob); form._photo = r; box.innerHTML = carPhotoInner(r.url); }
+    catch (e) { box.innerHTML = carPhotoInner(form._photo ? form._photo.url : ((S.cars.get(form.dataset.id) || {}).photoUrl || '')); toast(assetError(e)); }
+  })();
+  return true;
+});
+EXT.act['carpic-del'] = el => { const form = el.closest('form'); form._photo = {url: '', path: ''}; $('#cr-photo', form).innerHTML = carPhotoInner(''); };
 
 const ACT = {
   'close-sheet': () => { const sh = topSheet(); if (sh && sh.resolve) sh.resolve(false); else closeSheet(); },

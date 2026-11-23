@@ -162,6 +162,31 @@ try {
   });
   ok(up.status === 200 && /png/.test(up.type) && up.files === 1, 'photo uploads and comes back through a private signed link');
 
+  /* ---- 6b. A real photo of the car replaces the drawing on the booking page ---- */
+  await own.goto(O + '/staff#fleet');
+  await own.locator('#view [data-act="car"]').first().click();
+  await own.click('[data-act="car-edit"]');
+  await own.waitForSelector('#cr-photo');
+  await own.setInputFiles('#cr-pic', new URL('./fixtures/car.jpg', import.meta.url).pathname);
+  await own.waitForSelector('#cr-photo .cpic img');
+  await shot(own, '10b-car-photo');
+  await own.click('.sheet button[type=submit][form="cf2"]');
+  await own.waitForSelector('text=Car saved');
+  await own.keyboard.press('Escape');
+  let pubPhoto = '';
+  for (let i = 0; i < 30 && !pubPhoto; i++) { await own.waitForTimeout(500); const r = (await H.pool.query(`select data from public.records where col = 'public' and id = 'availability'`)).rows[0]; pubPhoto = (r.data.cars.find(c => c.photo) || {}).photo || ''; }
+  ok(/\/storage\/v1\/object\/public\/car-photos\//.test(pubPhoto), 'car photo is published to the booking page');
+  const stored = H.files.get('car-photos/' + pubPhoto.split('/car-photos/')[1]);
+  ok(stored.type === 'image/jpeg' && !stored.bytes.includes(Buffer.from('Exif')) && !stored.bytes.includes(Buffer.from('GPS')), 'photo is re-saved as a compressed JPEG with the phone\u2019s location data stripped');
+  await cus.goto(O + '/test-hire');
+  await cus.waitForSelector('#grid img.carph');
+  await cus.locator('#grid img.carph').first().scrollIntoViewIfNeeded();
+  await cus.waitForFunction(() => { const i = document.querySelector('#grid img.carph'); return i && i.complete && i.naturalWidth > 0; }, null, {timeout: 10000});
+  const drawings = await cus.locator('#grid .pic svg').count();
+  ok(drawings > 0, 'customers see the real photo, and cars without one keep their drawing (' + drawings + ')');
+  await cus.waitForTimeout(300);
+  await shot(cus, '05b-booking-page-photo');
+
   /* ---- 7. A member of staff joins ---- */
   await own.click('#pf-acct');
   await own.waitForSelector('#pf-team .pf-row');
@@ -185,6 +210,7 @@ try {
   await shot(bob, '12-staff-phone-today');
   // staff clears the details form; the owner's screen catches up
   await bob.locator('.row:has-text("Hire details from Sam Customer") [data-act="inbox-done"]').click();
+  await own.evaluate(() => { location.hash = 'today'; });
   await own.waitForFunction(() => document.querySelectorAll('[data-act="inbox-open"]').length === 1, null, {timeout: 15000});
   ok(true, 'a change on one phone shows on the other within seconds');
   const bobUrl = await bob.evaluate(async id => { await new Promise(r => setTimeout(r, 50)); window.PLATFORM.assetUrl(id); await new Promise(r => setTimeout(r, 600)); return window.PLATFORM.assetUrl(id); }, up.id);
