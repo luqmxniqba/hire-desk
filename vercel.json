@@ -5,8 +5,8 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    {"source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])/details", "destination": "/details/index.html"},
-    {"source": "/:slug((?!staff$|book$|details$|vendor$|fonts$|shared$|icons$)[a-z0-9][a-z0-9-]{1,38}[a-z0-9])", "destination": "/book/index.html"}
+    {"source": "/:slug([a-z0-9][a-z0-9-]{1,38}[a-z0-9])/details", "destination": "/details"},
+    {"source": "/:slug((?!staff$|book$|details$|vendor$|fonts$|shared$|icons$)[a-z0-9][a-z0-9-]{1,38}[a-z0-9])", "destination": "/book"}
   ],
   "headers": [
     {

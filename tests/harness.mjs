@@ -7,6 +7,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import pg from 'pg';
+import pathToRegexpPkg from 'path-to-regexp';
+const {pathToRegexp} = pathToRegexpPkg;
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const SITE = path.join(ROOT, 'site');
@@ -251,7 +253,9 @@ export async function startHarness({port = 8090, db = 'hiree2e', confirmEmail = 
   const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
   const csp = vercel.headers[0].headers.find(h => h.key === 'Content-Security-Policy').value.replace(/https:\/\/\*\.supabase\.co|wss:\/\/\*\.supabase\.co/g, '');
   const TYPES = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json', '.txt': 'text/plain'};
-  const rewrites = vercel.rewrites.map(r => ({re: new RegExp('^' + r.source.replace(/:slug\((.*?)\)(?=\/|$)/g, '($1)') + '$'), dest: r.destination}));
+  // Match rewrites with the same library Vercel uses, and serve destinations the way Vercel does
+  // with cleanUrls on: "/book" serves book/index.html, but "/book/index.html" is not an address.
+  const rewrites = vercel.rewrites.map(r => ({re: pathToRegexp(r.source), dest: r.destination}));
   function staticFile(req, res, url) {
     if (url.pathname === '/config.js') {
       return send(res, 200, Buffer.from(`window.APP_CONFIG = ${JSON.stringify({supabaseUrl: origin, supabaseKey: KEY, platformName: 'Hire Desk', pollMs})};`), {'Content-Type': TYPES['.js']});
@@ -259,7 +263,10 @@ export async function startHarness({port = 8090, db = 'hiree2e', confirmEmail = 
     let p = url.pathname.replace(/\/+$/, '') || '/';
     const tryFile = f => { try { return fs.statSync(f).isFile() ? f : null; } catch (e) { return null; } };
     let file = tryFile(path.join(SITE, p)) || tryFile(path.join(SITE, p + '.html')) || tryFile(path.join(SITE, p, 'index.html'));
-    if (!file) { const rw = rewrites.find(r => r.re.test(p)); if (rw) file = path.join(SITE, rw.dest); }
+    if (!file) {
+      const rw = rewrites.find(r => r.re.test(p));
+      if (rw && !(vercel.cleanUrls && /\.html$/.test(rw.dest))) file = tryFile(path.join(SITE, rw.dest)) || tryFile(path.join(SITE, rw.dest + '.html')) || tryFile(path.join(SITE, rw.dest, 'index.html'));
+    }
     if (!file || !file.startsWith(SITE)) { res.writeHead(404, {'Content-Type': TYPES['.html'], 'Content-Security-Policy': csp}); return res.end(fs.readFileSync(path.join(SITE, '404.html'))); }
     res.writeHead(200, {'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Content-Security-Policy': csp, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store'});
     res.end(fs.readFileSync(file));
